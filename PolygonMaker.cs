@@ -9,14 +9,8 @@ namespace Polyhedra2DZone {
     [ExecuteInEditMode]
     public class PolygonMaker : MonoBehaviour {
 
-        public static readonly Vector2[] QUAD_VERTICES = new Vector2[] {
-            0.5f * new Vector2(-1,-1), 0.5f * new Vector2(-1,1),
-            0.5f * Vector2.one, 0.5f * new Vector2(1, -1)
-        };
-
         [SerializeField] protected Polygon2D polygon;
         [SerializeField] protected Color edgeColor = Color.green;
-        [SerializeField] protected Color quadColor = Color.grey;
 
         protected GLMaterial glmat;
         protected MouseTracker mouse;
@@ -39,9 +33,11 @@ namespace Polyhedra2DZone {
 
                         var p = ray.GetPoint(t);
                         Edge2D edge;
-                        var sdist = polygon.SignedDistance(p, out edge, out t);
+                        int side;
+                        var d = polygon.DistanceByWorldPosition(p, out edge, out t, out side);
                         var q = polygon.ModelMatrix.MultiplyPoint3x4(edge.GetPosition(t));
-                        Debug.DrawLine(p, q, Color.red);
+                        Debug.DrawLine(p, q, 
+                            (side < 0 ? Color.red : Color.green));
                     }
                 }
             };
@@ -69,14 +65,6 @@ namespace Polyhedra2DZone {
                 }
                 GL.End();
 
-                GL.LoadIdentity();
-                GL.MultMatrix(view * transform.localToWorldMatrix);
-                GL.Begin(GL.LINES);
-                glmat.Color(quadColor);
-                foreach (var v in IterateQuadEdges())
-                    GL.Vertex(v);
-                GL.End();
-
             } finally {
                 GL.PopMatrix();
             }
@@ -85,13 +73,5 @@ namespace Polyhedra2DZone {
             glmat.Dispose();
         }
         #endregion
-
-        IEnumerable<Vector2> IterateQuadEdges() {
-            for (var i = 0; i < QUAD_VERTICES.Length; i++) {
-                var j = (i + 1) % QUAD_VERTICES.Length;
-                yield return QUAD_VERTICES[i];
-                yield return QUAD_VERTICES[j];
-            }
-        }
     }
 }
