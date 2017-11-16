@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Polyhedra2DZone {
 
@@ -9,6 +10,8 @@ namespace Polyhedra2DZone {
     public class Polygon2D : MonoBehaviour {
         public const float EPSILON = 1e-3f;
         public const float CIRCLE_INV_DEG = 1f / 360;
+
+        public UnityEvent OnGenerate;
 
         [SerializeField] protected List<Vector2> vertices = new List<Vector2>();
 
@@ -137,6 +140,8 @@ namespace Polyhedra2DZone {
                 scaledVertices.Add(v1);
                 scaledEdges.Add(new Edge2D(v0, v1));
             }
+
+            OnGenerate.Invoke();
         }
     }
 }
