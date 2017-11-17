@@ -1,14 +1,19 @@
 ﻿using Gist;
 using Gist.BoundingVolume;
+using Gist.Extensions.AABB;
 using Gist.Extensions.Behaviour;
+using Gist.Scoped;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Polyhedra2DZone {
 
     [ExecuteInEditMode]
     public class Fringe2D : MonoBehaviour {
+
+        public UnityEvent OnGenerate;
 
         [SerializeField] protected Polygon2D polygon;
         
@@ -18,6 +23,7 @@ namespace Polyhedra2DZone {
         protected Validator validator;
         protected List<OBB> boundaries;
         protected GLFigure fig;
+        protected ScopedPlug<UnityEvent> scopeOnGenerate;
 
         #region Unity
         void OnEnable() {
@@ -31,9 +37,13 @@ namespace Polyhedra2DZone {
             validator.Validation += () => {
                 GenerateBoundaries();
             };
-            polygon.OnGenerate.AddListener(PolygonOnGenerate);
+
+            var polygonOnGenerate = new UnityAction( () => validator.Invalidate());
+            scopeOnGenerate = new ScopedPlug<UnityEvent>(
+                polygon.OnGenerate, e => e.RemoveListener(polygonOnGenerate));
+            scopeOnGenerate.Data.AddListener(polygonOnGenerate);
         }
-        private void OnRenderObject() {
+        void OnRenderObject() {
             if (polygon == null || !polygon.IsActiveAndEnabledAlsoInEditMode())
                 return;
 
@@ -56,20 +66,30 @@ namespace Polyhedra2DZone {
                 fig.Dispose();
                 fig = null;
             }
-            if (polygon != null)
-                polygon.OnGenerate.RemoveListener(PolygonOnGenerate);
+            scopeOnGenerate.Dispose();
         }
         #endregion
-
-        protected void PolygonOnGenerate() {
-            validator.Invalidate();
+        
+        public Rect Bounds() {
+            var aabb = new AABB2D();
+            var quad = new Rect(-0.5f * Vector2.one, Vector2.one);
+            foreach (var b in boundaries) {
+                var bb = quad.EncapsulateInTargetSpace(b.quad);
+                aabb.Encapsulate(bb);
+            }
+            return aabb;
         }
+        public bool Overlaps(Rect r) {
+
+        }
+
         protected void GenerateBoundaries() {
             boundaries.Clear();
             foreach (var e in polygon.IterateEdges()) {
                 var obb = new OBB(e, fringeExtent);
                 boundaries.Add(obb);
             }
+            OnGenerate.Invoke();
         }
 
         public struct OBB {
