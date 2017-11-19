@@ -2,6 +2,7 @@
 using Gist.BoundingVolume;
 using Gist.Extensions.AABB;
 using Gist.Extensions.Behaviour;
+using Gist.Intersection;
 using Gist.Scoped;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,15 +22,16 @@ namespace Polyhedra2DZone {
         [SerializeField] protected Color debugBoundaryColor = Color.red;
 
         protected Validator validator;
-        protected List<OBB> boundaries;
+        protected List<OBB2> boundaries;
         protected GLFigure fig;
         protected ScopedPlug<UnityEvent> scopeOnGenerate;
 
         #region Unity
         void OnEnable() {
             validator = new Validator();
-            boundaries = new List<OBB>();
+            boundaries = new List<OBB2>();
             fig = new GLFigure();
+            fig.glmat.ZTestMode = GLMaterial.ZTestEnum.ALWAYS;
 
             if (polygon == null)
                 polygon = GetComponent<Polygon2D>();
@@ -49,12 +51,16 @@ namespace Polyhedra2DZone {
 
             validator.CheckValidation();
 
-            var modelview = Camera.current.worldToCameraMatrix
-                * polygon.ModelMatrix;
-            foreach (var b in boundaries) {
-                var m = modelview * b.quad;
-                fig.FillQuad(m, 0.5f * debugBoundaryColor);
+            var modelview = Camera.current.worldToCameraMatrix * polygon.ModelMatrix;
+            foreach (var obb in boundaries) {
+                var m = modelview * obb.Model;
+                var halfColor = 0.5f * debugBoundaryColor;
+                fig.FillQuad(m, halfColor);
                 fig.DrawQuad(m, debugBoundaryColor);
+
+                var aabb = obb.WorldBounds;
+                var aabbModel = Matrix4x4.TRS(aabb.center, Quaternion.identity, aabb.size);
+                fig.DrawQuad(modelview * aabbModel, 0.5f * halfColor);
             }
         }
         void OnValidate() {
@@ -70,47 +76,47 @@ namespace Polyhedra2DZone {
         }
         #endregion
         
-        public Rect Bounds() {
-            var aabb = new AABB2D();
-            var quad = new Rect(-0.5f * Vector2.one, Vector2.one);
-            foreach (var b in boundaries) {
-                var bb = quad.EncapsulateInTargetSpace(b.quad);
-                aabb.Encapsulate(bb);
+        public Rect Bounds {
+            get {
+                validator.CheckValidation();
+
+                var aabb = new AABB2();
+                var quad = new Rect(-0.5f * Vector2.one, Vector2.one);
+                foreach (var b in boundaries) {
+                    var bb = quad.EncapsulateInTargetSpace(b.Model);
+
+                    aabb.Encapsulate(bb);
+                }
+                return aabb;
             }
-            return aabb;
+        }
+        public bool Overlaps(AABB2 aabb) {
+            validator.CheckValidation();
+
+            foreach (var obb in boundaries)
+                if (aabb.Intersect(obb))
+                    return true;
+            return false;
         }
         public bool Overlaps(Rect r) {
-
+            return Overlaps((AABB2)r);
         }
 
         protected void GenerateBoundaries() {
             boundaries.Clear();
             foreach (var e in polygon.IterateEdges()) {
-                var obb = new OBB(e, fringeExtent);
+                var obb = GenerateConvex(e, fringeExtent);
                 boundaries.Add(obb);
             }
             OnGenerate.Invoke();
         }
-
-        public struct OBB {
-            public Matrix4x4 quad;
-
-            public OBB(Edge2D edge, float extent) {
-                var v01 = edge.v1 - edge.v0;
-                var xaxis = v01.normalized;
-                var yaxis = new Vector2(-xaxis.y, xaxis.x);
-
-                var len = v01.magnitude;
-                xaxis *= len + 2f * extent;
-                yaxis *= 2f * extent;
-
-                var center = edge.GetPosition(0.5f);
-                quad = Matrix4x4.zero;
-                quad[0] = xaxis.x; quad[4] = yaxis.x; quad[12] = center.x;
-                quad[1] = xaxis.y; quad[5] = yaxis.y; quad[13] = center.y;
-                quad[15] = 1f;
-
-            }
+        protected OBB2 GenerateConvex(Edge2D edge, float extent) {
+            var v01 = edge.v1 - edge.v0;
+            var xaxis = v01.normalized;
+            var len = v01.magnitude;
+            var size = new Vector2(len + 2f * extent, 2f * extent);
+            var center = edge.GetPosition(0.5f);
+            return new OBB2(center, size, xaxis);
         }
     }
 }

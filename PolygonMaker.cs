@@ -33,11 +33,11 @@ namespace Polyhedra2DZone {
 
                         var p = ray.GetPoint(t);
                         Edge2D edge;
-                        int side;
-                        polygon.DistanceByWorldPosition(p, out edge, out t, out side);
+                        polygon.DistanceByWorldPosition(p, out edge, out t);
                         var q = polygon.ModelMatrix.MultiplyPoint3x4(edge.GetPosition(t));
-                        Debug.DrawLine(p, q, 
-                            (side < 0 ? Color.red : Color.green));
+
+                        var side = polygon.Side(p);
+                        Debug.DrawLine(p, q, (side < 0 ? Color.red : Color.green));
                     }
                 }
             };

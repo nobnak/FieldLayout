@@ -95,14 +95,19 @@ namespace Polyhedra2DZone {
             distance = Vector3.Dot(n, c - ray.origin) / det;
             return true;
         }
-        public float Distance(Vector2 p, out Edge2D resEdge, out float resT, out int side) {
+        public int Side(Vector2 p) {
+            var totalAngle = 0f;
+            foreach (var e in IterateEdges())
+                totalAngle += e.Angle(p);
+            return Mathf.RoundToInt(totalAngle * CIRCLE_INV_DEG);
+        }
+        public float Distance(Vector2 p, out Edge2D resEdge, out float resT) {
             scaledDataValidator.CheckValidation();
 
             resEdge = default(Edge2D);
             resT = default(float);
 
             var minDist = float.MaxValue;
-            var totalAngle = 0f;
             foreach (var e in IterateEdges()) {
                 float t;
                 var dist = e.Distance(p, out t);
@@ -111,16 +116,11 @@ namespace Polyhedra2DZone {
                     resEdge = e;
                     resT = t;
                 }
-
-                totalAngle += e.Angle(p);
             }
-
-            side = Mathf.RoundToInt(totalAngle * CIRCLE_INV_DEG);
-
             return minDist;
         }
-        public float DistanceByWorldPosition(Vector3 worldPos, out Edge2D edge, out float t, out int side) {
-            return Distance(LocalPosition(worldPos), out edge, out t, out side);
+        public float DistanceByWorldPosition(Vector3 worldPos, out Edge2D edge, out float t) {
+            return Distance(LocalPosition(worldPos), out edge, out t);
         }
         
         protected void GenerateScaledData() {
