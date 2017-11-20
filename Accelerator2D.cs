@@ -10,11 +10,8 @@ using Polyhedra2DZone.SpacePartition;
 namespace Polyhedra2DZone {
 
     [ExecuteInEditMode]
-    public class Accelerator2D : MonoBehaviour {
-
-        [SerializeField] protected Polygon2D polygon;
-        [SerializeField] protected Fringe2D fringe;
-
+    public class Accelerator2D : Polygon2D {
+        
         [Range(10, 100)]
         [SerializeField] protected int subdivision = 10;
 
@@ -24,36 +21,20 @@ namespace Polyhedra2DZone {
         [SerializeField] protected Color debugColorCell;
         [Range(-1f,1f)]
         [SerializeField] protected float debugColorShift;
-
-        protected Validator validator;
+        
         protected UniformGrid2D<Cell> grid;
-        protected ScopedPlug<UnityEvent> scopeOnGenerate;
 
         protected GLFigure fig;
+        protected Fringe2D fringe;
 
         #region Unity
-        protected void OnEnable() {
-            validator = new Validator();
+        protected override void OnEnable() {
+            base.OnEnable();
+            
             grid = new UniformGrid2D<Cell>();
             fig = new GLFigure();
             fig.glmat.ZOffset = 1f;
-
-            if (polygon == null)
-                polygon = GetComponent<Polygon2D>();
-            if (fringe == null)
-                fringe = GetComponent<Fringe2D>();
-
-            var fringeOnGenerate = new UnityAction(() => validator.Invalidate());
-            scopeOnGenerate = new ScopedPlug<UnityEvent>(
-                fringe.OnGenerate, e => e.RemoveListener(fringeOnGenerate));
-            scopeOnGenerate.Data.AddListener(fringeOnGenerate);
-            validator.Validation += () => {
-                GenerateGrid();
-            };
-        }
-        protected void OnValidate() {
-            if (validator != null)
-                validator.Invalidate();
+            fringe = new Fringe2D(this);
         }
         protected void OnRenderObject() {
             if (!debugEnabled || !this.IsActiveAndEnabledAlsoInEditMode())
@@ -61,7 +42,7 @@ namespace Polyhedra2DZone {
 
             validator.CheckValidation();
 
-            var modelview = Camera.current.worldToCameraMatrix * polygon.ModelMatrix;
+            var modelview = Camera.current.worldToCameraMatrix * ModelMatrix;
             var bounds = fringe.Bounds;
             var shape = Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size);
             fig.DrawQuad(modelview * shape, debugColorFringeBoundary);
@@ -93,7 +74,6 @@ namespace Polyhedra2DZone {
             }
         }
         protected void OnDisable() {
-            scopeOnGenerate.Dispose();
             fig.Dispose();
         }
         #endregion
@@ -101,16 +81,27 @@ namespace Polyhedra2DZone {
         public Polygon2D.WhichSideEnum Sample(Vector3 pos) {
             validator.CheckValidation();
 
-            var localPos = polygon.LocalPosition(pos);
+            var localPos = LocalPosition(pos);
             var cell = grid[localPos];
             var side = cell.side;
             if (side == Polygon2D.WhichSideEnum.Unknown)
-                side = polygon.Side(localPos);
+                side = base.Side(localPos);
 
             return side;
         }
 
-        protected void GenerateGrid() {
+        #region Validation
+        protected override void Validate() {
+            base.Validate();
+            GenerateGrid();
+        }
+        protected override void Invalidate() {
+            base.Invalidate();
+            fringe.Invalidate();
+        }
+        #endregion
+
+        protected virtual void GenerateGrid() {
             subdivision = Mathf.Max(3, subdivision);
             grid.Subdivision = subdivision;
 
@@ -128,7 +119,7 @@ namespace Polyhedra2DZone {
                     var pos = new Vector2(x * cellSize.x, y * cellSize.y) + min;
                     var rect = new Rect(pos, cellSize);
                     if (!fringe.Overlaps(rect))
-                        c.side = polygon.Side(rect.center);
+                        c.side = Side(rect.center);
 
                     c.area = rect;
                     grid[x, y] = c;

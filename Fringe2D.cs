@@ -11,44 +11,27 @@ using UnityEngine.Events;
 
 namespace Polyhedra2DZone {
 
-    [ExecuteInEditMode]
-    public class Fringe2D : MonoBehaviour {
-
-        public UnityEvent OnGenerate;
-
-        [SerializeField] protected Polygon2D polygon;
-        
+    [System.Serializable]
+    public class Fringe2D {
         [SerializeField] protected float fringeExtent = 0f;
 
         [Header("Debug")]
-        [SerializeField] protected bool debugEnabled = true;
         [SerializeField] protected Color debugBoundaryColor = Color.red;
+
+        protected Polygon2D polygon;
 
         protected Validator validator;
         protected List<OBB2> boundaries;
-        protected GLFigure fig;
-        protected ScopedPlug<UnityEvent> scopeOnGenerate;
 
-        #region Unity
-        void OnEnable() {
+        public Fringe2D(Polygon2D polygon) {
+            this.polygon = polygon;
+
             validator = new Validator();
             boundaries = new List<OBB2>();
-            fig = new GLFigure();
-
-            if (polygon == null)
-                polygon = GetComponent<Polygon2D>();
-
-            validator.Validation += () => {
-                GenerateBoundaries();
-            };
-
-            var polygonOnGenerate = new UnityAction( () => validator.Invalidate());
-            scopeOnGenerate = new ScopedPlug<UnityEvent>(
-                polygon.OnGenerate, e => e.RemoveListener(polygonOnGenerate));
-            scopeOnGenerate.Data.AddListener(polygonOnGenerate);
         }
-        void OnRenderObject() {
-            if (!debugEnabled || polygon == null || !polygon.IsActiveAndEnabledAlsoInEditMode())
+
+        public void OnRenderObject(GLFigure fig) {
+            if (polygon == null || !polygon.IsActiveAndEnabledAlsoInEditMode())
                 return;
 
             validator.CheckValidation();
@@ -65,18 +48,9 @@ namespace Polyhedra2DZone {
                 fig.DrawQuad(modelview * aabbModel, 0.5f * halfColor);
             }
         }
-        void OnValidate() {
-            if (validator != null)
-                validator.Invalidate();
+        public void Invalidate() {
+            validator.Invalidate();
         }
-        private void OnDisable() {
-            if (fig != null) {
-                fig.Dispose();
-                fig = null;
-            }
-            scopeOnGenerate.Dispose();
-        }
-        #endregion
         
         public Rect Bounds {
             get {
@@ -110,7 +84,6 @@ namespace Polyhedra2DZone {
                 var obb = GenerateConvex(e, fringeExtent);
                 boundaries.Add(obb);
             }
-            OnGenerate.Invoke();
         }
         protected OBB2 GenerateConvex(Edge2D edge, float extent) {
             var v01 = edge.v1 - edge.v0;

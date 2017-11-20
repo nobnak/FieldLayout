@@ -17,24 +17,20 @@ namespace Polyhedra2DZone {
 
         [SerializeField] protected List<Vector2> vertices = new List<Vector2>();
 
-        protected Validator scaledDataValidator;
+        protected Validator validator;
         protected Matrix4x4 scaledModelMatrix;
         protected Matrix4x4 scaledInverseModelMatrix;
         protected List<Vector2> scaledVertices = new List<Vector2>();
         protected List<Edge2D> scaledEdges = new List<Edge2D>();
 
         #region Unity
-        void OnEnable() {
-            scaledDataValidator = new Validator();
-            scaledDataValidator.Validation += () => {
-                transform.hasChanged = false;
-                GenerateScaledData();
-            };
-            scaledDataValidator.SetExtraValidityChecker(() => !transform.hasChanged);
+        protected virtual void OnEnable() {
+            validator = new Validator();
+            validator.Validation += () => Validate();
+            validator.SetExtraValidityChecker(() => !transform.hasChanged);
         }
-        void OnValidate() {
-            if (scaledDataValidator != null)
-                scaledDataValidator.Invalidate();
+        protected virtual void OnValidate() {
+            Invalidate();
         }
         #endregion
 
@@ -43,49 +39,49 @@ namespace Polyhedra2DZone {
         public Vector2 this[int i] {
             get { return vertices[i]; }
             set {
-                scaledDataValidator.Invalidate();
+                Invalidate();
                 vertices[i] = value;
             }
         }
 
         public int Add(Vector2 v) {
-            scaledDataValidator.Invalidate();
+            Invalidate();
             var i = vertices.Count;
             vertices.Add(v);
             return i;
         }
         public Vector2 Remove(int i) {
-            scaledDataValidator.Invalidate();
+            Invalidate();
             var v = vertices[i];
             vertices.RemoveAt(i);
             return v;
         }
         #endregion
 
-        public IEnumerable<Vector2> IterateVertices(bool scaled = true) {
-            scaledDataValidator.CheckValidation();
+        public virtual IEnumerable<Vector2> IterateVertices(bool scaled = true) {
+            validator.CheckValidation();
             foreach (var v in scaledVertices)
                 yield return v;
         }
-        public IEnumerable<Edge2D> IterateEdges(bool scaled = true) {
-            scaledDataValidator.CheckValidation();
+        public virtual IEnumerable<Edge2D> IterateEdges(bool scaled = true) {
+            validator.CheckValidation();
             foreach (var e in scaledEdges)
                 yield return e;
         }
 
         #region Transform
-        public Matrix4x4 ModelMatrix {
+        public virtual Matrix4x4 ModelMatrix {
             get { return scaledModelMatrix; }
         }
-        public Vector2 LocalPosition(Vector3 worldPosition) {
+        public virtual Vector2 LocalPosition(Vector3 worldPosition) {
             return (Vector2)scaledInverseModelMatrix.MultiplyPoint3x4(worldPosition);
         }
-        public Vector3 WorldPosition(Vector2 localPosition) {
+        public virtual Vector3 WorldPosition(Vector2 localPosition) {
             return scaledModelMatrix.MultiplyPoint3x4(localPosition);
         }
         #endregion
 
-        public bool Raycast(Ray ray, out float distance) {
+        public virtual bool Raycast(Ray ray, out float distance) {
             distance = default(float);
 
             var n = transform.forward;
@@ -97,15 +93,15 @@ namespace Polyhedra2DZone {
             distance = Vector3.Dot(n, c - ray.origin) / det;
             return true;
         }
-        public WhichSideEnum Side(Vector2 p) {
+        public virtual WhichSideEnum Side(Vector2 p) {
             var totalAngle = 0f;
             foreach (var e in IterateEdges())
                 totalAngle += e.Angle(p);
             return (Mathf.RoundToInt(totalAngle * CIRCLE_INV_DEG) != 0)
                 ? WhichSideEnum.Inside : WhichSideEnum.Outside;
         }
-        public float Distance(Vector2 p, out Edge2D resEdge, out float resT) {
-            scaledDataValidator.CheckValidation();
+        public virtual float Distance(Vector2 p, out Edge2D resEdge, out float resT) {
+            validator.CheckValidation();
 
             resEdge = default(Edge2D);
             resT = default(float);
@@ -122,11 +118,22 @@ namespace Polyhedra2DZone {
             }
             return minDist;
         }
-        public float DistanceByWorldPosition(Vector3 worldPos, out Edge2D edge, out float t) {
+        public virtual float DistanceByWorldPosition(Vector3 worldPos, out Edge2D edge, out float t) {
             return Distance(LocalPosition(worldPos), out edge, out t);
         }
-        
-        protected void GenerateScaledData() {
+
+        #region Validation
+        protected virtual void Validate() {
+            transform.hasChanged = false;
+            GenerateScaledData();
+        }
+        protected virtual void Invalidate() {
+            if (validator != null)
+                validator.Invalidate();
+        }
+        #endregion
+
+        protected virtual void GenerateScaledData() {
             scaledVertices.Clear();
             scaledEdges.Clear();
 
