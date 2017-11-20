@@ -17,7 +17,7 @@ namespace Polyhedra2DZone {
 
         [SerializeField] protected List<Vector2> vertices = new List<Vector2>();
 
-        protected Validator validator;
+        protected Validator validator = new Validator();
         protected Matrix4x4 scaledModelMatrix;
         protected Matrix4x4 scaledInverseModelMatrix;
         protected List<Vector2> scaledVertices = new List<Vector2>();
@@ -25,7 +25,7 @@ namespace Polyhedra2DZone {
 
         #region Unity
         protected virtual void OnEnable() {
-            validator = new Validator();
+            validator.Reset();
             validator.Validation += () => Validate();
             validator.SetExtraValidityChecker(() => !transform.hasChanged);
         }
@@ -128,8 +128,7 @@ namespace Polyhedra2DZone {
             GenerateScaledData();
         }
         protected virtual void Invalidate() {
-            if (validator != null)
-                validator.Invalidate();
+            validator.Invalidate();
         }
         #endregion
 

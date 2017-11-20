@@ -14,6 +14,7 @@ namespace Polyhedra2DZone {
         
         [Range(10, 100)]
         [SerializeField] protected int subdivision = 10;
+        [SerializeField] protected Fringe2D fringe;
 
         [Header("Debug")]
         [SerializeField] protected bool debugEnabled = true;
@@ -25,7 +26,6 @@ namespace Polyhedra2DZone {
         protected UniformGrid2D<Cell> grid;
 
         protected GLFigure fig;
-        protected Fringe2D fringe;
 
         #region Unity
         protected override void OnEnable() {
@@ -41,6 +41,10 @@ namespace Polyhedra2DZone {
                 return;
 
             validator.CheckValidation();
+
+            fig.glmat.ZOffset = 0f;
+            fringe.OnRenderObject(fig);
+            fig.glmat.ZOffset = 1f;
 
             var modelview = Camera.current.worldToCameraMatrix * ModelMatrix;
             var bounds = fringe.Bounds;
@@ -93,11 +97,11 @@ namespace Polyhedra2DZone {
         #region Validation
         protected override void Validate() {
             base.Validate();
+            fringe.Generate();
             GenerateGrid();
         }
         protected override void Invalidate() {
             base.Invalidate();
-            fringe.Invalidate();
         }
         #endregion
 

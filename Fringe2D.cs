@@ -19,22 +19,17 @@ namespace Polyhedra2DZone {
         [SerializeField] protected Color debugBoundaryColor = Color.red;
 
         protected Polygon2D polygon;
-
-        protected Validator validator;
         protected List<OBB2> boundaries;
 
         public Fringe2D(Polygon2D polygon) {
             this.polygon = polygon;
-
-            validator = new Validator();
+            
             boundaries = new List<OBB2>();
         }
 
         public void OnRenderObject(GLFigure fig) {
             if (polygon == null || !polygon.IsActiveAndEnabledAlsoInEditMode())
                 return;
-
-            validator.CheckValidation();
 
             var modelview = Camera.current.worldToCameraMatrix * polygon.ModelMatrix;
             foreach (var obb in boundaries) {
@@ -48,14 +43,9 @@ namespace Polyhedra2DZone {
                 fig.DrawQuad(modelview * aabbModel, 0.5f * halfColor);
             }
         }
-        public void Invalidate() {
-            validator.Invalidate();
-        }
         
         public Rect Bounds {
             get {
-                validator.CheckValidation();
-
                 var aabb = new AABB2();
                 var quad = new Rect(-0.5f * Vector2.one, Vector2.one);
                 foreach (var b in boundaries) {
@@ -67,8 +57,6 @@ namespace Polyhedra2DZone {
             }
         }
         public bool Overlaps(AABB2 aabb) {
-            validator.CheckValidation();
-
             foreach (var obb in boundaries)
                 if (aabb.Intersect(obb))
                     return true;
@@ -78,7 +66,7 @@ namespace Polyhedra2DZone {
             return Overlaps((AABB2)r);
         }
 
-        protected void GenerateBoundaries() {
+        public void Generate() {
             boundaries.Clear();
             foreach (var e in polygon.IterateEdges()) {
                 var obb = GenerateConvex(e, fringeExtent);
