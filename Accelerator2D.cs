@@ -17,6 +17,9 @@ namespace Polyhedra2DZone {
 
         [Range(10, 100)]
         [SerializeField] protected int subdivision = 10;
+
+        [Header("Debug")]
+        [SerializeField] protected bool debugEnabled = true;
         [SerializeField] protected Color debugColorFringeBoundary = Color.blue;
         [SerializeField] protected Color debugColorCell;
         [Range(-1f,1f)]
@@ -33,7 +36,7 @@ namespace Polyhedra2DZone {
             validator = new Validator();
             grid = new UniformGrid2D<Cell>();
             fig = new GLFigure();
-            fig.glmat.ZTestMode = GLMaterial.ZTestEnum.ALWAYS;
+            fig.glmat.ZOffset = 1f;
 
             if (polygon == null)
                 polygon = GetComponent<Polygon2D>();
@@ -53,7 +56,7 @@ namespace Polyhedra2DZone {
                 validator.Invalidate();
         }
         protected void OnRenderObject() {
-            if (!this.IsActiveAndEnabledAlsoInEditMode())
+            if (!debugEnabled || !this.IsActiveAndEnabledAlsoInEditMode())
                 return;
 
             validator.CheckValidation();
@@ -69,13 +72,13 @@ namespace Polyhedra2DZone {
                 var m = modelview * cell.Model;
                 var offset = 0f;
                 switch (cell.side) {
-                    case Cell.Side.Inside:
+                    case Polygon2D.WhichSideEnum.Inside:
                         offset = 0f;
                         break;
-                    case Cell.Side.Unknown:
+                    case Polygon2D.WhichSideEnum.Unknown:
                         offset = 1f;
                         break;
-                    case Cell.Side.Outside:
+                    case Polygon2D.WhichSideEnum.Outside:
                         offset = 2f;
                         break;
                 }
@@ -95,6 +98,18 @@ namespace Polyhedra2DZone {
         }
         #endregion
 
+        public Polygon2D.WhichSideEnum Sample(Vector3 pos) {
+            validator.CheckValidation();
+
+            var localPos = polygon.LocalPosition(pos);
+            var cell = grid[localPos];
+            var side = cell.side;
+            if (side == Polygon2D.WhichSideEnum.Unknown)
+                side = polygon.Side(localPos);
+
+            return side;
+        }
+
         protected void GenerateGrid() {
             subdivision = Mathf.Max(3, subdivision);
             grid.Subdivision = subdivision;
@@ -113,7 +128,7 @@ namespace Polyhedra2DZone {
                     var pos = new Vector2(x * cellSize.x, y * cellSize.y) + min;
                     var rect = new Rect(pos, cellSize);
                     if (!fringe.Overlaps(rect))
-                        c.side = (polygon.Side(rect.center) == 0 ? Cell.Side.Outside : Cell.Side.Inside);
+                        c.side = polygon.Side(rect.center);
 
                     c.area = rect;
                     grid[x, y] = c;
@@ -122,9 +137,8 @@ namespace Polyhedra2DZone {
         }
 
         public struct Cell {
-            public enum Side { Unknown = 0, Inside, Outside }
 
-            public Side side;
+            public Polygon2D.WhichSideEnum side;
             public Rect area;
 
             public Matrix4x4 Model {

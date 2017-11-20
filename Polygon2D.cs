@@ -8,6 +8,8 @@ namespace Polyhedra2DZone {
 
     [ExecuteInEditMode]
     public class Polygon2D : MonoBehaviour {
+        public enum WhichSideEnum { Unknown = 0, Inside, Outside }
+
         public const float EPSILON = 1e-3f;
         public const float CIRCLE_INV_DEG = 1f / 360;
 
@@ -95,11 +97,12 @@ namespace Polyhedra2DZone {
             distance = Vector3.Dot(n, c - ray.origin) / det;
             return true;
         }
-        public int Side(Vector2 p) {
+        public WhichSideEnum Side(Vector2 p) {
             var totalAngle = 0f;
             foreach (var e in IterateEdges())
                 totalAngle += e.Angle(p);
-            return Mathf.RoundToInt(totalAngle * CIRCLE_INV_DEG);
+            return (Mathf.RoundToInt(totalAngle * CIRCLE_INV_DEG) != 0)
+                ? WhichSideEnum.Inside : WhichSideEnum.Outside;
         }
         public float Distance(Vector2 p, out Edge2D resEdge, out float resT) {
             scaledDataValidator.CheckValidation();

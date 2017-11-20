@@ -37,7 +37,7 @@ namespace Polyhedra2DZone {
                         var q = polygon.ModelMatrix.MultiplyPoint3x4(edge.GetPosition(t));
 
                         var side = polygon.Side(p);
-                        Debug.DrawLine(p, q, (side < 0 ? Color.red : Color.green));
+                        Debug.DrawLine(p, q, (side == Polygon2D.WhichSideEnum.Inside ? Color.red : Color.green));
                     }
                 }
             };

@@ -19,6 +19,9 @@ namespace Polyhedra2DZone {
         [SerializeField] protected Polygon2D polygon;
         
         [SerializeField] protected float fringeExtent = 0f;
+
+        [Header("Debug")]
+        [SerializeField] protected bool debugEnabled = true;
         [SerializeField] protected Color debugBoundaryColor = Color.red;
 
         protected Validator validator;
@@ -31,7 +34,6 @@ namespace Polyhedra2DZone {
             validator = new Validator();
             boundaries = new List<OBB2>();
             fig = new GLFigure();
-            fig.glmat.ZTestMode = GLMaterial.ZTestEnum.ALWAYS;
 
             if (polygon == null)
                 polygon = GetComponent<Polygon2D>();
@@ -46,7 +48,7 @@ namespace Polyhedra2DZone {
             scopeOnGenerate.Data.AddListener(polygonOnGenerate);
         }
         void OnRenderObject() {
-            if (polygon == null || !polygon.IsActiveAndEnabledAlsoInEditMode())
+            if (!debugEnabled || polygon == null || !polygon.IsActiveAndEnabledAlsoInEditMode())
                 return;
 
             validator.CheckValidation();
