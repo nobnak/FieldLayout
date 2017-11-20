@@ -18,6 +18,8 @@ namespace Polyhedra2DZone {
 
         [Header("Debug")]
         [SerializeField] protected bool debugEnabled = true;
+        [SerializeField] protected bool debugFringeEnabled = true;
+        [SerializeField] protected bool debugGridEnabled = true;
         [SerializeField] protected Color debugColorFringeBoundary = Color.blue;
         [SerializeField] protected Color debugColorCell;
         [Range(-1f,1f)]
@@ -34,7 +36,7 @@ namespace Polyhedra2DZone {
             grid = new UniformGrid2D<Cell>();
             fig = new GLFigure();
             fig.glmat.ZOffset = 1f;
-            fringe = new Fringe2D(this);
+            fringe.Init(this);
         }
         protected void OnRenderObject() {
             if (!debugEnabled || !this.IsActiveAndEnabledAlsoInEditMode())
@@ -42,39 +44,43 @@ namespace Polyhedra2DZone {
 
             validator.CheckValidation();
 
-            fig.glmat.ZOffset = 0f;
-            fringe.OnRenderObject(fig);
+            if (debugFringeEnabled) {
+                fig.glmat.ZOffset = 0f;
+                fringe.OnRenderObject(fig);
+            }
             fig.glmat.ZOffset = 1f;
 
-            var modelview = Camera.current.worldToCameraMatrix * ModelMatrix;
-            var bounds = fringe.Bounds;
-            var shape = Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size);
-            fig.DrawQuad(modelview * shape, debugColorFringeBoundary);
+            if (debugGridEnabled) {
+                var modelview = Camera.current.worldToCameraMatrix * ModelMatrix;
+                var bounds = fringe.Bounds;
+                var shape = Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size);
+                fig.DrawQuad(modelview * shape, debugColorFringeBoundary);
 
-            float h, s, v;
-            Color.RGBToHSV(debugColorCell, out h, out s, out v);
-            foreach (var cell in grid) {
-                var m = modelview * cell.Model;
-                var offset = 0f;
-                switch (cell.side) {
-                    case Polygon2D.WhichSideEnum.Inside:
-                        offset = 0f;
-                        break;
-                    case Polygon2D.WhichSideEnum.Unknown:
-                        offset = 1f;
-                        break;
-                    case Polygon2D.WhichSideEnum.Outside:
-                        offset = 2f;
-                        break;
+                float h, s, v;
+                Color.RGBToHSV(debugColorCell, out h, out s, out v);
+                foreach (var cell in grid) {
+                    var m = modelview * cell.Model;
+                    var offset = 0f;
+                    switch (cell.side) {
+                        case Polygon2D.WhichSideEnum.Inside:
+                            offset = 0f;
+                            break;
+                        case Polygon2D.WhichSideEnum.Unknown:
+                            offset = 1f;
+                            break;
+                        case Polygon2D.WhichSideEnum.Outside:
+                            offset = 2f;
+                            break;
+                    }
+
+                    var cellType = h + debugColorShift * offset;
+                    cellType -= Mathf.Floor(cellType);
+
+                    var c = Color.HSVToRGB(cellType, s, v);
+                    c.a = debugColorCell.a;
+                    fig.FillQuad(m, 0.5f * c);
+                    fig.DrawQuad(m, c);
                 }
-
-                var cellType = h + debugColorShift * offset;
-                cellType -= Mathf.Floor(cellType);
-
-                var c = Color.HSVToRGB(cellType, s, v);
-                c.a = debugColorCell.a;
-                fig.FillQuad(m, 0.5f * c);
-                fig.DrawQuad(m, c);
             }
         }
         protected void OnDisable() {

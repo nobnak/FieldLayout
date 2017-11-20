@@ -21,7 +21,7 @@ namespace Polyhedra2DZone {
         protected Polygon2D polygon;
         protected List<OBB2> boundaries;
 
-        public Fringe2D(Polygon2D polygon) {
+        public void Init(Polygon2D polygon) {
             this.polygon = polygon;
             
             boundaries = new List<OBB2>();
