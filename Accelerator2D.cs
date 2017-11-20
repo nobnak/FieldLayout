@@ -5,6 +5,7 @@ using Gist;
 using UnityEngine.Events;
 using Gist.Scoped;
 using Gist.Extensions.Behaviour;
+using Polyhedra2DZone.SpacePartition;
 
 namespace Polyhedra2DZone {
 
@@ -22,7 +23,7 @@ namespace Polyhedra2DZone {
         [SerializeField] protected float debugColorShift;
 
         protected Validator validator;
-        protected List<Cell> grid;
+        protected UniformGrid2D<Cell> grid;
         protected ScopedPlug<UnityEvent> scopeOnGenerate;
 
         protected GLFigure fig;
@@ -30,7 +31,7 @@ namespace Polyhedra2DZone {
         #region Unity
         protected void OnEnable() {
             validator = new Validator();
-            grid = new List<Cell>();
+            grid = new UniformGrid2D<Cell>();
             fig = new GLFigure();
             fig.glmat.ZTestMode = GLMaterial.ZTestEnum.ALWAYS;
 
@@ -44,7 +45,6 @@ namespace Polyhedra2DZone {
                 fringe.OnGenerate, e => e.RemoveListener(fringeOnGenerate));
             scopeOnGenerate.Data.AddListener(fringeOnGenerate);
             validator.Validation += () => {
-                subdivision = Mathf.Max(3, subdivision);
                 GenerateGrid();
             };
         }
@@ -96,22 +96,19 @@ namespace Polyhedra2DZone {
         #endregion
 
         protected void GenerateGrid() {
-            grid.Clear();
-            for (var y = 0; y < subdivision; y++)
-                for (var x = 0; x < subdivision; x++)
-                    grid.Add(new Cell());
+            subdivision = Mathf.Max(3, subdivision);
+            grid.Subdivision = subdivision;
 
             var bounds = fringe.Bounds;
-
             var innerCellCount = subdivision - 2;
             var size = bounds.size * (1.01f * subdivision / innerCellCount);
             var min = bounds.center - 0.5f * size;
             var cellSize = size / subdivision;
+            grid.Init(min, cellSize);
 
             for (var y = 0; y < subdivision; y++) {
                 for (var x = 0; x < subdivision; x++) {
-                    var i = x + y * subdivision;
-                    var c = grid[i];
+                    var c = grid[x, y];
 
                     var pos = new Vector2(x * cellSize.x, y * cellSize.y) + min;
                     var rect = new Rect(pos, cellSize);
@@ -119,7 +116,7 @@ namespace Polyhedra2DZone {
                         c.side = (polygon.Side(rect.center) == 0 ? Cell.Side.Outside : Cell.Side.Inside);
 
                     c.area = rect;
-                    grid[i] = c;
+                    grid[x, y] = c;
                 }
             }
         }
