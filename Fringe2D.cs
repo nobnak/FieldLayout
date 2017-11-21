@@ -1,13 +1,9 @@
 ﻿using Gist;
-using Gist.BoundingVolume;
 using Gist.Extensions.AABB;
 using Gist.Extensions.Behaviour;
 using Gist.Intersection;
-using Gist.Scoped;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Polyhedra2DZone {
 
