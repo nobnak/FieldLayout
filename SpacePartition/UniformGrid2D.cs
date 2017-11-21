@@ -14,11 +14,14 @@ namespace Polyhedra2DZone.SpacePartition {
         protected Vector2 min;
         protected Vector2 cellSize;
 
+        protected Matrix4x4 quantizationMat;
+
         public void Init(Vector2 min, Vector2 cellSize, WrapIndexEnum wrapMode = WrapIndexEnum.Clamp) {
             Clear();
             this.min = min;
             this.cellSize = cellSize;
             this.wrapMode = wrapMode;
+            UpdateQuantizationMatrix();
         }
 
         public T[] Data { get { return data; } }
@@ -31,8 +34,20 @@ namespace Polyhedra2DZone.SpacePartition {
         }
 
         public WrapIndexEnum WrapMode { get { return wrapMode; } set { wrapMode = value; } }
-        public Vector2 Min { get { return min; } set { min = value; } }
-        public Vector2 CellSize { get { return cellSize; } set { cellSize = value; } }
+        public Vector2 Min {
+            get { return min; }
+            set {
+                min = value;
+                UpdateQuantizationMatrix();
+            }
+        }
+        public Vector2 CellSize {
+            get { return cellSize; }
+            set {
+                cellSize = value;
+                UpdateQuantizationMatrix();
+            }
+        }
         
         public T this[int x, int y] {
             get {
@@ -78,10 +93,9 @@ namespace Polyhedra2DZone.SpacePartition {
             }
         }
         public void Quantize(Vector2 p, out int x, out int y) {
-            var px = p.x - min.x;
-            var py = p.y - min.y;
-            x = Mathf.FloorToInt(px / cellSize.x);
-            y = Mathf.FloorToInt(py / cellSize.y);
+            var pquantized = quantizationMat.MultiplyPoint3x4(p);
+            x = Mathf.FloorToInt(pquantized.x);
+            y = Mathf.FloorToInt(pquantized.y);
         }
 
 
@@ -96,8 +110,11 @@ namespace Polyhedra2DZone.SpacePartition {
         }
         #endregion
 
-
-
+        protected void UpdateQuantizationMatrix() {
+            var invSize = new Vector2(1f / cellSize.x, 1f / cellSize.y);
+            quantizationMat = Matrix4x4.TRS(
+                Vector2.Scale(-min, invSize), Quaternion.identity, invSize);
+        }
         protected void Resize(int nextValue) {
             if (nextValue != subdivision) {
                 subdivision = nextValue;
