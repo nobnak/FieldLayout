@@ -83,7 +83,7 @@ namespace Polyhedra2DZone {
                 }
             }
         }
-        protected void OnDisable() {
+        protected override void OnDisable() {
             fig.Dispose();
         }
         #endregion

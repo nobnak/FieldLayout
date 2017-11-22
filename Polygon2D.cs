@@ -32,9 +32,12 @@ namespace Polyhedra2DZone {
         protected virtual void OnValidate() {
             Invalidate();
         }
+        protected virtual void OnDisable() {
+
+        }
         #endregion
 
-        #region List
+        #region Vertex List
         public int Count { get { return vertices.Count; } }
         public Vector2 this[int i] {
             get { return vertices[i]; }
@@ -58,6 +61,7 @@ namespace Polyhedra2DZone {
         }
         #endregion
 
+        #region Scaled
         public virtual IEnumerable<Vector2> IterateVertices(bool scaled = true) {
             validator.CheckValidation();
             foreach (var v in scaledVertices)
@@ -68,6 +72,10 @@ namespace Polyhedra2DZone {
             foreach (var e in scaledEdges)
                 yield return e;
         }
+        public virtual Vector2 GetScaledVertex(int index) {
+            return scaledVertices[index];
+        }
+        #endregion
 
         #region Transform
         public virtual Matrix4x4 ModelMatrix {
@@ -100,7 +108,22 @@ namespace Polyhedra2DZone {
             return (Mathf.RoundToInt(totalAngle * CIRCLE_INV_DEG) != 0)
                 ? WhichSideEnum.Inside : WhichSideEnum.Outside;
         }
-        public virtual float Distance(Vector2 p, out Edge2D resEdge, out float resT) {
+        public virtual float DistanceToVertex(Vector2 p, out int index) {
+            validator.CheckValidation();
+            index = -1;
+
+            var minSqDist = float.MaxValue;
+            for (var i = 0; i < scaledVertices.Count; i++) {
+                var v = scaledVertices[i];
+                var sqDist = (v - p).sqrMagnitude;
+                if (sqDist < minSqDist) {
+                    minSqDist = sqDist;
+                    index = i;
+                }
+            }
+            return Mathf.Sqrt(minSqDist);
+        }
+        public virtual float DistanceToEdge(Vector2 p, out Edge2D resEdge, out float resT) {
             validator.CheckValidation();
 
             resEdge = default(Edge2D);
@@ -118,8 +141,8 @@ namespace Polyhedra2DZone {
             }
             return minDist;
         }
-        public virtual float DistanceByWorldPosition(Vector3 worldPos, out Edge2D edge, out float t) {
-            return Distance(LocalPosition(worldPos), out edge, out t);
+        public virtual float DistanceToEdgeByWorldPosition(Vector3 worldPos, out Edge2D edge, out float t) {
+            return DistanceToEdge(LocalPosition(worldPos), out edge, out t);
         }
 
         #region Validation
@@ -146,7 +169,6 @@ namespace Polyhedra2DZone {
                 var v0 = Vector2.Scale(vertices[i], scale);
                 var v1 = Vector2.Scale(vertices[j], scale);
                 scaledVertices.Add(v0);
-                scaledVertices.Add(v1);
                 scaledEdges.Add(new Edge2D(v0, v1));
             }
 
