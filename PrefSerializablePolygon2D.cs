@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace Polyhedra2DZone {
 
+    [ExecuteInEditMode]
     public class PrefSerializablePolygon2D : Accelerator2D {
 
         [SerializeField] protected string uniqueName;

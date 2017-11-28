@@ -26,7 +26,7 @@ namespace Polyhedra2DZone {
         [SerializeField] protected float debugColorShift;
         
         protected UniformGrid2D<Cell> grid;
-
+        protected new Validator validator = new Validator();
         protected GLFigure fig;
 
         #region Unity
@@ -35,14 +35,22 @@ namespace Polyhedra2DZone {
             
             grid = new UniformGrid2D<Cell>();
             fig = new GLFigure();
+
             fig.glmat.ZOffset = 1f;
             fringe.Init(this);
+
+            validator.Reset();
+            validator.Validation += () => {
+                base.validator.CheckValidation();
+                fringe.Generate();
+                GenerateGrid();
+            };
+            base.validator.Invalidated += () => validator.Invalidate();
         }
         protected void OnRenderObject() {
-            if (!debugEnabled || !this.IsActiveAndEnabledAlsoInEditMode())
+            if (!debugEnabled || !this.IsActiveAndEnabledAlsoInEditMode()
+                || !validator.CheckValidation())
                 return;
-
-            validator.CheckValidation();
 
             if (debugFringeEnabled) {
                 fig.glmat.ZOffset = 0f;
@@ -51,7 +59,7 @@ namespace Polyhedra2DZone {
             fig.glmat.ZOffset = 1f;
 
             if (debugGridEnabled) {
-                var modelview = Camera.current.worldToCameraMatrix * LayerMatrix;
+                var modelview = Camera.current.worldToCameraMatrix * layer.LayerToWorld;
                 var bounds = fringe.Bounds;
                 var shape = Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size);
                 fig.DrawQuad(modelview * shape, debugColorFringeBoundary);
@@ -84,14 +92,18 @@ namespace Polyhedra2DZone {
             }
         }
         protected override void OnDisable() {
-            fig.Dispose();
+            if (fig != null) {
+                fig.Dispose();
+                fig = null;
+            }
+            base.OnDisable();
         }
         #endregion
 
         public Polygon2D.WhichSideEnum Sample(Vector3 pos) {
             validator.CheckValidation();
 
-            var layerPos = (Vector2)WorldToLayer(pos);
+            var layerPos = (Vector2)layer.LayerToWorld.InverseTransformPoint(pos);
             var cell = grid[layerPos];
             var side = cell.side;
             if (side == Polygon2D.WhichSideEnum.Unknown)
@@ -99,17 +111,6 @@ namespace Polyhedra2DZone {
 
             return side;
         }
-
-        #region Validation
-        protected override void Validate() {
-            base.Validate();
-            fringe.Generate();
-            GenerateGrid();
-        }
-        protected override void Invalidate() {
-            base.Invalidate();
-        }
-        #endregion
 
         protected virtual void GenerateGrid() {
             subdivision = Mathf.Max(3, subdivision);

@@ -13,56 +13,36 @@ namespace Polyhedra2DZone {
         public const float EPSILON = 1e-3f;
         public const float CIRCLE_INV_DEG = 1f / 360;
 
-        public UnityEvent Changed;
-
         protected Validator validator = new Validator();
-        protected Matrix4x4 layerMatrix;
-        protected Matrix4x4 inverseLayerMatrix;
-        protected Matrix4x4 localMatrix;
-        protected Matrix4x4 inverseLocalMatrix;
+
+        public Layer() {
+            LayerToWorld = new DefferedMatrix();
+            LocalToLayer = new DefferedMatrix();
+            LocalToWorld = new DefferedMatrix();
+        }
 
         #region Unity
         protected virtual void OnEnable() {
             validator.Reset();
-            validator.Validation += () => Validate();
-            validator.SetExtraValidityChecker(() => !transform.hasChanged);
+            validator.Validation += () => {
+                transform.hasChanged = false;
+                GenerateLayerData();
+            };
+            validator.SetCheckers(() => !transform.hasChanged);
         }
         protected virtual void OnValidate() {
-            Invalidate();
-        }
-        protected virtual void Update() {
-            validator.CheckValidation();
+            validator.Invalidate();
         }
         protected virtual void OnDisable() {
 
         }
         #endregion
-        
+
         #region ILayer
-        public virtual Matrix4x4 LayerMatrix {
-            get { return layerMatrix; }
-        }
-        public virtual Matrix4x4 InverseLayerMatrix {
-            get { return inverseLayerMatrix; }
-        }
-        public virtual Matrix4x4 LocalMatrix {
-            get { return localMatrix; }
-        }
-        public virtual Matrix4x4 InverseLocalMatrix {
-            get { return inverseLocalMatrix; }
-        }
-        public virtual Vector3 LayerToLocal(Vector3 layerPosition) {
-            return inverseLayerMatrix.MultiplyPoint3x4(layerPosition);
-        }
-        public virtual Vector3 LocalToLayer(Vector3 normalizedPosition) {
-            return localMatrix.MultiplyPoint3x4(normalizedPosition);
-        }
-        public virtual Vector3 WorldToLayer(Vector3 worldPosition) {
-            return inverseLayerMatrix.MultiplyPoint3x4(worldPosition);
-        }
-        public virtual Vector3 LayerToWorld(Vector3 localPosition) {
-            return layerMatrix.MultiplyPoint3x4(localPosition);
-        }
+        public DefferedMatrix LayerToWorld { get; protected set; }
+        public DefferedMatrix LocalToLayer { get; protected set; }
+        public DefferedMatrix LocalToWorld { get; protected set; }
+
         public virtual bool Raycast(Ray ray, out float distance) {
             distance = default(float);
 
@@ -75,23 +55,16 @@ namespace Polyhedra2DZone {
             distance = Vector3.Dot(n, c - ray.origin) / det;
             return true;
         }
+
+        public virtual Validator ValidatorGetter { get { return validator; } }
         #endregion
         
-        protected virtual void Validate() {
-            transform.hasChanged = false;
-            GenerateLayerData();
-        }
-        protected virtual void Invalidate() {
-            validator.Invalidate();
-        }
         protected virtual void GenerateLayerData() {
-            layerMatrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-            inverseLayerMatrix = layerMatrix.inverse;
-
-            localMatrix = Matrix4x4.Scale(transform.localScale);
-            inverseLocalMatrix = localMatrix.inverse;
-
-            Changed.Invoke();
+            var layer = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+            var local = Matrix4x4.Scale(transform.localScale);
+            LayerToWorld.Reset(layer);
+            LocalToLayer.Reset(local);
+            LocalToWorld.Reset(layer, local);
         }
     }
 }

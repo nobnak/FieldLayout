@@ -12,6 +12,15 @@ namespace Polyhedra2DZone {
         protected Matrix4x4 mergedMatrix;
         protected Matrix4x4 inverseMatrix;
 
+        #region Static
+        public static Matrix4x4 operator*(Matrix4x4 l, DefferedMatrix r) {
+            return l * r.Matrix;
+        }
+        public static Matrix4x4 operator*(DefferedMatrix l, Matrix4x4 r) {
+            return l.Matrix * r;
+        }
+        #endregion
+
         public void Reset(params Matrix4x4[] chainOfMatrices) {
             this.valid = false;
             this.chainOfMatrices = chainOfMatrices;

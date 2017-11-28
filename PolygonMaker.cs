@@ -36,11 +36,11 @@ namespace Polyhedra2DZone {
                     float dmin = float.MaxValue;
                     foreach (var polygon in polygons) { 
                         float t;
-                        if (polygon.Raycast(ray, out t)) {
+                        if (polygon.LayerGetter.Raycast(ray, out t)) {
                             var p = ray.GetPoint(t);
-                            var plocal = polygon.LocalPosition(p);
+                            var player = polygon.LayerGetter.LayerToWorld.InverseTransformPoint(p);
                             int j;
-                            var d = polygon.DistanceToVertex(plocal, out j);
+                            var d = polygon.DistanceToVertex(player, out j);
                             if (d < selectionDistance && d < dmin) {
                                 dmin = d;
                                 selectedPolygon = polygon;
@@ -56,8 +56,10 @@ namespace Polyhedra2DZone {
 
                     if (selectedVertexIndex >= 0) {
                         Vector2 dp;
+
                         if (UnscaledLocalDistance(selectedPolygon, mt, c, out dp)) {
-                            selectedPolygon[selectedVertexIndex] += dp;
+                            var p = selectedPolygon.GetVertex(selectedVertexIndex);
+                            selectedPolygon.SetVertex(selectedVertexIndex, p + dp);
                         }
                     }
                 }
@@ -77,9 +79,11 @@ namespace Polyhedra2DZone {
             var rayCurr = c.ScreenPointToRay(mt.CurrPosition);
 
             float tprev, tcurr;
-            if (polygon.Raycast(rayPrev, out tprev) && polygon.Raycast(rayCurr, out tcurr)) {
-                dp = polygon.transform.InverseTransformVector(
-                    rayCurr.GetPoint(tcurr) - rayPrev.GetPoint(tprev));
+            var layer = polygon.LayerGetter;
+            if (layer.Raycast(rayPrev, out tprev) && layer.Raycast(rayCurr, out tcurr)) {
+                var v = rayCurr.GetPoint(tcurr) - rayPrev.GetPoint(tprev);
+                dp = layer.LocalToLayer.InverseTransformPoint(
+                    layer.LayerToWorld.InverseTransformPoint(v));
                 return true;
             }
             return false;
@@ -94,10 +98,10 @@ namespace Polyhedra2DZone {
 
             foreach (var polygon in polygons) {
                 if (!polygon.IsActiveAndEnabledAlsoInEditMode())
-                    break;
+                    continue;
 
                 var view = Camera.current.worldToCameraMatrix;
-                var modelView = view * polygon.ModelMatrix;
+                var modelView = view * polygon.LayerGetter.LayerToWorld;
                 GL.PushMatrix();
                 try {
                     GL.LoadIdentity();
@@ -105,14 +109,15 @@ namespace Polyhedra2DZone {
 
                     GL.Begin(GL.LINES);
                     glmat.Color(edgeColor);
-                    foreach (var e in polygon.IterateEdges(false)) {
+                    foreach (var e in polygon.IterateEdges()) {
                         GL.Vertex(e.v0);
                         GL.Vertex(e.v1);
                     }
                     GL.End();
 
                     if (polygon == selectedPolygon && selectedVertexIndex >= 0) {
-                        var v = polygon.GetScaledVertex(selectedVertexIndex);
+                        var v = polygon.GetVertex(selectedVertexIndex);
+                        v = polygon.LayerGetter.LocalToLayer.InverseTransformPoint(v);
                         var quadShape = Matrix4x4.TRS(v, Quaternion.identity, 0.1f * Vector3.one);
                         glfig.FillQuad(modelView * quadShape, edgeColor);
                     }

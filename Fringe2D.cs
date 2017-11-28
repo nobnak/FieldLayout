@@ -27,7 +27,7 @@ namespace Polyhedra2DZone {
             if (polygon == null || !polygon.IsActiveAndEnabledAlsoInEditMode())
                 return;
 
-            var modelview = Camera.current.worldToCameraMatrix * polygon.LayerMatrix;
+            var modelview = Camera.current.worldToCameraMatrix * polygon.LayerGetter.LayerToWorld;
             foreach (var obb in boundaries) {
                 var m = modelview * obb.Model;
                 var halfColor = 0.5f * debugBoundaryColor;
