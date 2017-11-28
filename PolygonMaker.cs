@@ -9,7 +9,7 @@ namespace Polyhedra2DZone {
     [ExecuteInEditMode]
     public class PolygonMaker : MonoBehaviour {
 
-        [SerializeField] protected Polygon2D polygon;
+        [SerializeField] protected Polygon2D[] polygons;
         [SerializeField] protected Color edgeColor = Color.green;
         [SerializeField] protected float selectionDistance = 5f;
 
@@ -25,8 +25,8 @@ namespace Polyhedra2DZone {
             glfig = new GLFigure();
             mouse = new MouseTracker();
 
-            if (polygon == null)
-                polygon = GetComponent<Polygon2D>();
+            if (polygons == null)
+                polygons = FindObjectsOfType<Polygon2D>();
 
             mouse.OnSelectionDown += (mt, f) => {
                 if ((f & MouseTracker.ButtonFlag.Left) != 0) {
@@ -35,9 +35,9 @@ namespace Polyhedra2DZone {
                     float t;
                     if (polygon.Raycast(ray, out t)) {
                         var p = ray.GetPoint(t);
-                        var plocal = polygon.LocalPosition(p);
+                        var player = (Vector2)polygon.WorldToLayer(p);
                         int index;
-                        var d = polygon.DistanceToVertex(plocal, out index);
+                        var d = polygon.DistanceToVertex(player, out index);
                         if (d < selectionDistance) {
                             selectionIndex = index;
                         }
@@ -51,7 +51,8 @@ namespace Polyhedra2DZone {
                     if (selectionIndex >= 0) {
                         Vector2 dp;
                         if (UnscaledLocalDistance(mt, c, out dp)) {
-                            polygon[selectionIndex] += dp;
+                            var p = polygon.GetVertex(selectionIndex);
+                            polygon.SetVertex(selectionIndex, p + dp);
                         }
                     }
                 }
@@ -71,7 +72,7 @@ namespace Polyhedra2DZone {
 
             float tprev, tcurr;
             if (polygon.Raycast(rayPrev, out tprev) && polygon.Raycast(rayCurr, out tcurr)) {
-                dp = polygon.transform.InverseTransformVector(
+                dp = polygon.InverseLayerMatrix.MultiplyVector(
                     rayCurr.GetPoint(tcurr) - rayPrev.GetPoint(tprev));
                 return true;
             }
@@ -86,7 +87,7 @@ namespace Polyhedra2DZone {
                 return;
 
             var view = Camera.current.worldToCameraMatrix;
-            var modelView = view * polygon.ModelMatrix;
+            var modelView = view * polygon.LayerMatrix;
             GL.PushMatrix();
             try {
                 GL.LoadIdentity();
@@ -94,14 +95,14 @@ namespace Polyhedra2DZone {
 
                 GL.Begin(GL.LINES);
                 glmat.Color(edgeColor);
-                foreach (var e in polygon.IterateEdges(false)) {
+                foreach (var e in polygon.IterateEdges()) {
                     GL.Vertex(e.v0);
                     GL.Vertex(e.v1);
                 }
                 GL.End();
 
                 if (selectionIndex >= 0) {
-                    var v = polygon.GetScaledVertex(selectionIndex);
+                    var v = polygon.GetVertex(selectionIndex);
                     var quadShape = Matrix4x4.TRS(v, Quaternion.identity, 0.1f * Vector3.one);
                     glfig.FillQuad(modelView * quadShape, edgeColor);
                 }

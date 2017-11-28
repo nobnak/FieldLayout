@@ -51,7 +51,7 @@ namespace Polyhedra2DZone {
             fig.glmat.ZOffset = 1f;
 
             if (debugGridEnabled) {
-                var modelview = Camera.current.worldToCameraMatrix * ModelMatrix;
+                var modelview = Camera.current.worldToCameraMatrix * LayerMatrix;
                 var bounds = fringe.Bounds;
                 var shape = Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size);
                 fig.DrawQuad(modelview * shape, debugColorFringeBoundary);
@@ -91,11 +91,11 @@ namespace Polyhedra2DZone {
         public Polygon2D.WhichSideEnum Sample(Vector3 pos) {
             validator.CheckValidation();
 
-            var localPos = LocalPosition(pos);
-            var cell = grid[localPos];
+            var layerPos = (Vector2)WorldToLayer(pos);
+            var cell = grid[layerPos];
             var side = cell.side;
             if (side == Polygon2D.WhichSideEnum.Unknown)
-                side = base.Side(localPos);
+                side = base.Side(layerPos);
 
             return side;
         }
