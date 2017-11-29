@@ -35,11 +35,11 @@ namespace Polyhedra2DZone {
         protected void Load() {
             if (PlayerPrefs.HasKey(uniqueName)) {
                 var json = PlayerPrefs.GetString(uniqueName);
-                JsonUtility.FromJsonOverwrite(json, this);
+                JsonUtility.FromJsonOverwrite(json, normalizedVertices);
             }
         }
         protected void Save() {
-            var json = JsonUtility.ToJson(this);
+            var json = JsonUtility.ToJson(normalizedVertices);
             PlayerPrefs.SetString(uniqueName, json);
         }
     }

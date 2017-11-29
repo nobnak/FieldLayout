@@ -9,7 +9,6 @@ namespace Polyhedra2DZone {
     [ExecuteInEditMode]
     public class PolygonMaker : MonoBehaviour {
 
-        [SerializeField] protected Polygon2D[] polygons;
         [SerializeField] protected Color edgeColor = Color.green;
         [SerializeField] protected float selectionDistance = 5f;
 
@@ -17,17 +16,15 @@ namespace Polyhedra2DZone {
         protected GLFigure glfig;
         protected MouseTracker mouse;
 
-        protected Polygon2D selectedPolygon;
-        protected int selectedVertexIndex = -1;
+        protected List<Polygon2D> polygons;
+        protected PolygonSelection selection = new PolygonSelection();
 
         #region Unity
         void OnEnable() {
             glmat = new GLMaterial();
             glfig = new GLFigure();
             mouse = new MouseTracker();
-
-            if (polygons == null)
-                polygons = FindObjectsOfType<Polygon2D>();
+            polygons = new List<Polygon2D>(GetComponentsInChildren<Polygon2D>());
 
             mouse.OnSelectionDown += (mt, f) => {
                 if ((f & MouseTracker.ButtonFlag.Left) != 0) {
@@ -43,8 +40,7 @@ namespace Polyhedra2DZone {
                             var d = polygon.DistanceToVertex(player, out j);
                             if (d < selectionDistance && d < dmin) {
                                 dmin = d;
-                                selectedPolygon = polygon;
-                                selectedVertexIndex = j;
+                                selection.Select(polygon, j);
                             }
                         }
                     }
@@ -54,41 +50,22 @@ namespace Polyhedra2DZone {
                 if ((f & MouseTracker.ButtonFlag.Left) != 0) {
                     var c = Camera.main;
 
-                    if (selectedVertexIndex >= 0) {
+                    if (selection.selectedVertexIndex >= 0) {
                         Vector2 dp;
 
-                        if (UnscaledLocalDistance(selectedPolygon, mt, c, out dp)) {
-                            var p = selectedPolygon.GetVertex(selectedVertexIndex);
-                            selectedPolygon.SetVertex(selectedVertexIndex, p + dp);
+                        if (LocalDistance(selection.selectedPolygon, mt, c, out dp)) {
+                            var p = selection.GetVertex();
+                            selection.SetVertex(p + dp);
                         }
                     }
                 }
             };
             mouse.OnSelectionUp += (mt, f) => {
                 if ((f & MouseTracker.ButtonFlag.Left) != 0) {
-                    selectedPolygon = null;
-                    selectedVertexIndex = -1;
+                    selection.Unselect();
                 }
             };
         }
-
-        protected bool UnscaledLocalDistance(Polygon2D polygon, MouseTracker mt, Camera c, out Vector2 dp) {
-            dp = default(Vector2);
-
-            var rayPrev = c.ScreenPointToRay(mt.PrevPosition);
-            var rayCurr = c.ScreenPointToRay(mt.CurrPosition);
-
-            float tprev, tcurr;
-            var layer = polygon.LayerGetter;
-            if (layer.Raycast(rayPrev, out tprev) && layer.Raycast(rayCurr, out tcurr)) {
-                var v = rayCurr.GetPoint(tcurr) - rayPrev.GetPoint(tprev);
-                dp = layer.LocalToLayer.InverseTransformPoint(
-                    layer.LayerToWorld.InverseTransformPoint(v));
-                return true;
-            }
-            return false;
-        }
-
         void Update() {
             mouse.Update();
         }
@@ -115,8 +92,8 @@ namespace Polyhedra2DZone {
                     }
                     GL.End();
 
-                    if (polygon == selectedPolygon && selectedVertexIndex >= 0) {
-                        var v = polygon.GetVertex(selectedVertexIndex);
+                    if (selection.Selected) {
+                        var v = selection.GetVertex();
                         v = polygon.LayerGetter.LocalToLayer.InverseTransformPoint(v);
                         var quadShape = Matrix4x4.TRS(v, Quaternion.identity, 0.1f * Vector3.one);
                         glfig.FillQuad(modelView * quadShape, edgeColor);
@@ -132,5 +109,66 @@ namespace Polyhedra2DZone {
             glmat.Dispose();
         }
         #endregion
+        
+
+        protected bool LocalDistance(Polygon2D polygon, MouseTracker mt, Camera c, out Vector2 dp) {
+            dp = default(Vector2);
+
+            var rayPrev = c.ScreenPointToRay(mt.PrevPosition);
+            var rayCurr = c.ScreenPointToRay(mt.CurrPosition);
+            
+            var layer = polygon.LayerGetter;
+            Vector3 p0, p1;
+            if (FindPointOnLayer(layer, rayPrev, out p0) && FindPointOnLayer(layer, rayCurr, out p1)) {
+                dp = layer.LocalToLayer.InverseTransformPoint(
+                    layer.LayerToWorld.InverseTransformPoint(p1 - p0));
+                return true;
+            }
+            return false;
+        }
+        protected bool FindPointOnLayer(Layer layer, Ray ray, out Vector3 worldPos) {
+            worldPos = default(Vector3);
+
+            float t;
+            if (layer.Raycast(ray, out t)) {
+                worldPos = ray.GetPoint(t);
+                return true;
+            }
+            return false;
+        }
+
+
+        public class PolygonSelection {
+            public Polygon2D selectedPolygon { get; protected set; }
+            public int selectedVertexIndex { get; protected set; }
+
+            public PolygonSelection() {
+                Unselect();
+            }
+
+            public void Select(Polygon2D polygon, int vertexIndex) {
+                this.selectedPolygon = polygon;
+                this.selectedVertexIndex = vertexIndex;
+            }
+            public void Unselect() {
+                selectedPolygon = null;
+                selectedVertexIndex = -1;
+            }
+            public bool Selected { get {
+                    return selectedPolygon != null && selectedVertexIndex >= 0; } }
+
+            public Vector2 GetVertex(int vertexIndex) {
+                return selectedPolygon.GetVertex(vertexIndex);
+            }
+            public Vector2 GetVertex() {
+                return GetVertex(selectedVertexIndex);
+            }
+            public void SetVertex(int vertexIndex, Vector2 p) { 
+                selectedPolygon.SetVertex(vertexIndex, p);
+            }
+            public void SetVertex(Vector2 p) {
+                SetVertex(selectedVertexIndex, p);
+            }
+        }
     }
 }

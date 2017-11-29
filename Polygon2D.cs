@@ -15,7 +15,7 @@ namespace Polyhedra2DZone {
 
         public UnityEvent OnGenerate;
 
-        [SerializeField] protected Layer layer;
+        public Layer layer;
         [SerializeField] protected List<Vector2> normalizedVertices = new List<Vector2>();
 
         protected Validator validator = new Validator();
