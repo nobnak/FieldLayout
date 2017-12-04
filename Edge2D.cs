@@ -17,13 +17,16 @@ namespace Polyhedra2DZone {
             this.v0 = v0;
             this.v1 = v1;
         }
-
-        public float Distance(Vector2 p, out float t) {
+        
+        public float TOfClosestPoint(Vector2 p) {
             CheckCache();
 
             var vp = p - v0;
-            t = Mathf.Clamp01(Vector2.Dot(vp, reciproTangent));
-            return (p - GetPosition(t)).magnitude;
+            return Mathf.Clamp01(Vector2.Dot(vp, reciproTangent));
+        }
+        public Vector3 ClosestPoint(Vector2 p) {
+            var t = TOfClosestPoint(p);
+            return GetPosition(t);
         }
 
         public Vector2 GetPosition(float t) {

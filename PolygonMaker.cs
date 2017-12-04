@@ -35,11 +35,12 @@ namespace Polyhedra2DZone {
                         float t;
                         if (polygon.LayerGetter.Raycast(ray, out t)) {
                             var p = ray.GetPoint(t);
-                            var player = polygon.LayerGetter.LayerToWorld.InverseTransformPoint(p);
-                            int j;
-                            var d = polygon.DistanceToVertex(player, out j);
-                            if (d < selectionDistance && d < dmin) {
-                                dmin = d;
+                            var player = (Vector2)polygon.LayerGetter.LayerToWorld.InverseTransformPoint(p);
+                            var j = polygon.ClosestVertexIndex(player);
+                            var v = polygon.GetVertex(j);
+                            var sqd = (v - player).sqrMagnitude;
+                            if (sqd < selectionDistance && sqd < dmin) {
+                                dmin = sqd;
                                 selection.Select(polygon, j);
                             }
                         }

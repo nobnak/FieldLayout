@@ -91,9 +91,9 @@ namespace Polyhedra2DZone {
             return (Mathf.RoundToInt(totalAngle * CIRCLE_INV_DEG) != 0)
                 ? WhichSideEnum.Inside : WhichSideEnum.Outside;
         }
-        public virtual float DistanceToVertex(Vector2 p, out int index) {
+        public virtual int ClosestVertexIndex(Vector2 p) {
             validator.CheckValidation();
-            index = -1;
+            var index = -1;
 
             var minSqDist = float.MaxValue;
             for (var i = 0; i < layerVertices.Count; i++) {
@@ -104,28 +104,7 @@ namespace Polyhedra2DZone {
                     index = i;
                 }
             }
-            return Mathf.Sqrt(minSqDist);
-        }
-        public virtual float DistanceToEdge(Vector2 p, out Edge2D resEdge, out float resT) {
-            validator.CheckValidation();
-
-            resEdge = default(Edge2D);
-            resT = default(float);
-
-            var minDist = float.MaxValue;
-            foreach (var e in IterateEdges()) {
-                float t;
-                var dist = e.Distance(p, out t);
-                if (dist < minDist) {
-                    minDist = dist;
-                    resEdge = e;
-                    resT = t;
-                }
-            }
-            return minDist;
-        }
-        public virtual float DistanceToEdgeByWorldPosition(Vector3 worldPos, out Edge2D edge, out float t) {
-            return DistanceToEdge(layer.LayerToWorld.InverseTransformPoint(worldPos), out edge, out t);
+            return index;
         }
         
         protected virtual void GenerateLayerData() {
