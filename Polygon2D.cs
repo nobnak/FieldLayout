@@ -1,12 +1,13 @@
 ﻿using Gist;
 using Gist.Extensions.Behaviour;
+using Gist.Intersection;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace Polyhedra2DZone {
-    
+    [ExecuteInEditMode]
     public class Polygon2D : MonoBehaviour {
         public enum WhichSideEnum { Unknown = 0, Inside, Outside }
 
@@ -16,14 +17,21 @@ namespace Polyhedra2DZone {
         public UnityEvent OnGenerate;
 
         public Layer layer;
-        [SerializeField] protected List<Vector2> normalizedVertices = new List<Vector2>();
+        [SerializeField] protected PolygonData data;
 
         protected Validator validator = new Validator();
         protected List<Vector2> layerVertices = new List<Vector2>();
         protected List<Edge2D> layerEdges = new List<Edge2D>();
+        protected AABB2 layerBounds = new AABB2();
 
         #region Unity
         protected virtual void OnEnable() {
+            if (data == null) {
+                Debug.LogFormat("PolygonData not found");
+                enabled = false;
+                return;
+            }
+
             validator.Reset();
             validator.Validation += () => {
                 layer.ValidatorGetter.CheckValidation();
@@ -43,24 +51,24 @@ namespace Polyhedra2DZone {
 
         #region Vertex
         public virtual int VertexCount {
-            get { return normalizedVertices.Count; }
+            get { return data.normalizedVertices.Count; }
         }
         public virtual Vector2 GetVertex(int i) {
-            return normalizedVertices[i];
+            return data.normalizedVertices[i];
         }
         public virtual void SetVertex(int i, Vector2 value) {
             validator.Invalidate();
-            normalizedVertices[i] = value;
+            data.normalizedVertices[i] = value;
         }
         public virtual int AddVertex(Vector2 v) {
             validator.Invalidate();
-            var i = normalizedVertices.Count;
-            normalizedVertices.Add(v);
+            var i = data.normalizedVertices.Count;
+            data.normalizedVertices.Add(v);
             return i;
         }
         public virtual void RemoveVertex(int i) {
             validator.Invalidate();
-            normalizedVertices.RemoveAt(i);
+            data.normalizedVertices.RemoveAt(i);
         }
         public virtual IEnumerable<Vector2> IterateVertices() {
             validator.CheckValidation();
@@ -83,6 +91,8 @@ namespace Polyhedra2DZone {
                 return layer;
             }
         }
+        public Rect LayerBounds { get { return layerBounds; } }
+
         public virtual WhichSideEnum Side(Vector2 p) {
             validator.CheckValidation();
             var totalAngle = 0f;
@@ -110,15 +120,17 @@ namespace Polyhedra2DZone {
         protected virtual void GenerateLayerData() {
             layerVertices.Clear();
             layerEdges.Clear();
+            layerBounds.Clear();
 
-            var limit = normalizedVertices.Count;
+            var limit = data.normalizedVertices.Count;
             var local = layer.LocalToLayer;
             for (var i = 0; i < limit; i++) {
                 var j = (i + 1) % limit;
-                var v0 = (Vector2)local.TransformPoint(normalizedVertices[i]);
-                var v1 = (Vector2)local.TransformPoint(normalizedVertices[j]);
+                var v0 = (Vector2)local.TransformPoint(data.normalizedVertices[i]);
+                var v1 = (Vector2)local.TransformPoint(data.normalizedVertices[j]);
                 layerVertices.Add(v0);
                 layerEdges.Add(new Edge2D(v0, v1));
+                layerBounds.Encapsulate(v0);
             }
 
             OnGenerate.Invoke();

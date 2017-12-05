@@ -74,30 +74,51 @@ namespace Polyhedra2DZone {
             if (glmat == null)
                 return;
 
+            float h, s, v;
+            Color.RGBToHSV(edgeColor, out h, out s, out v);
+
             foreach (var polygon in polygons) {
                 if (!polygon.IsActiveAndEnabledAlsoInEditMode())
                     continue;
 
+                var layerId = polygon.gameObject.layer;
+                var layerHue = h + layerId / 32f;
+                var layerColor = Color.HSVToRGB(h - Mathf.Floor(h), s, v);
+
                 var view = Camera.current.worldToCameraMatrix;
-                var modelView = view * polygon.LayerGetter.LayerToWorld;
+                var modelMat = polygon.LayerGetter.LayerToWorld;
+                var modelView = view * modelMat;
                 GL.PushMatrix();
                 try {
                     GL.LoadIdentity();
                     GL.MultMatrix(modelView);
 
                     GL.Begin(GL.LINES);
-                    glmat.Color(edgeColor);
+                    glmat.Color(layerColor);
                     foreach (var e in polygon.IterateEdges()) {
                         GL.Vertex(e.v0);
                         GL.Vertex(e.v1);
                     }
                     GL.End();
 
+                    var bounds = polygon.LayerBounds;
+                    var boundsMat = Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size);
+                    glfig.DrawQuad(modelView * boundsMat, 0.5f * layerColor);
+
+#if UNITY_EDITOR
+                    var labelPos = modelMat.Matrix.MultiplyPoint3x4(new Vector2(bounds.xMin, bounds.yMax));
+                    var offset = modelMat.Matrix.MultiplyVector(
+                        (0.2f * UnityEditor.HandleUtility.GetHandleSize(labelPos))
+                        * Vector2.up);
+                    UnityEditor.Handles.Label(labelPos + offset, string.Format("{0} / {1}",
+                        LayerMask.LayerToName(layerId), polygon.gameObject.tag));
+#endif
+
                     if (selection.Selected) {
-                        var v = selection.GetVertex();
-                        v = polygon.LayerGetter.LocalToLayer.InverseTransformPoint(v);
-                        var quadShape = Matrix4x4.TRS(v, Quaternion.identity, 0.1f * Vector3.one);
-                        glfig.FillQuad(modelView * quadShape, edgeColor);
+                        var layerPos = selection.GetVertex();
+                        var localPos = polygon.LayerGetter.LocalToLayer.InverseTransformPoint(layerPos);
+                        var quadShape = Matrix4x4.TRS(localPos, Quaternion.identity, 0.1f * Vector3.one);
+                        glfig.FillQuad(modelView * quadShape, layerColor);
                     }
 
                 } finally {
