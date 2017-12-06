@@ -24,7 +24,7 @@ namespace Polyhedra2DZone {
             var vp = p - v0;
             return Mathf.Clamp01(Vector2.Dot(vp, reciproTangent));
         }
-        public Vector3 ClosestPoint(Vector2 p) {
+        public Vector2 ClosestPoint(Vector2 p) {
             var t = TOfClosestPoint(p);
             return GetPosition(t);
         }

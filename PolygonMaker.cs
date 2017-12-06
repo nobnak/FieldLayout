@@ -82,8 +82,8 @@ namespace Polyhedra2DZone {
                     continue;
 
                 var layerId = polygon.gameObject.layer;
-                var layerHue = h + layerId / 32f;
-                var layerColor = Color.HSVToRGB(h - Mathf.Floor(h), s, v);
+                var layerHue = h + layerId * 7 / 32f;
+                var layerColor = Color.HSVToRGB(layerHue - Mathf.Floor(layerHue), s, v);
 
                 var view = Camera.current.worldToCameraMatrix;
                 var modelMat = polygon.LayerGetter.LayerToWorld;
@@ -110,8 +110,8 @@ namespace Polyhedra2DZone {
                     var offset = modelMat.Matrix.MultiplyVector(
                         (0.2f * UnityEditor.HandleUtility.GetHandleSize(labelPos))
                         * Vector2.up);
-                    UnityEditor.Handles.Label(labelPos + offset, string.Format("{0} / {1}",
-                        LayerMask.LayerToName(layerId), polygon.gameObject.tag));
+                    UnityEditor.Handles.Label(labelPos + offset, string.Format("{0}({1}) / {2}",
+                        layerId, LayerMask.LayerToName(layerId), polygon.gameObject.tag));
 #endif
 
                     if (selection.Selected) {

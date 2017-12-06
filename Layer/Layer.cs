@@ -8,14 +8,13 @@ namespace Polyhedra2DZone {
 
     [ExecuteInEditMode]
     public class Layer : MonoBehaviour, ILayer {
-        public enum WhichSideEnum { Unknown = 0, Inside, Outside }
 
         public const float EPSILON = 1e-3f;
         public const float CIRCLE_INV_DEG = 1f / 360;
 
-        protected Validator validator = new Validator();
-
         public Layer() {
+            LayerValidator = new Validator();
+
             LayerToWorld = new DefferedMatrix();
             LocalToLayer = new DefferedMatrix();
             LocalToWorld = new DefferedMatrix();
@@ -23,15 +22,17 @@ namespace Polyhedra2DZone {
 
         #region Unity
         protected virtual void OnEnable() {
-            validator.Reset();
-            validator.Validation += () => {
+            LayerValidator.Reset();
+            LayerValidator.Validation += () => {
                 transform.hasChanged = false;
                 GenerateLayerData();
             };
-            validator.SetCheckers(() => !transform.hasChanged);
+            LayerValidator.SetCheckers(() => !transform.hasChanged);
+        }
+        protected virtual void Update() {
         }
         protected virtual void OnValidate() {
-            validator.Invalidate();
+            LayerValidator.Invalidate();
         }
         protected virtual void OnDisable() {
 
@@ -39,6 +40,8 @@ namespace Polyhedra2DZone {
         #endregion
 
         #region ILayer
+        public virtual Validator LayerValidator { get; protected set; }
+
         public DefferedMatrix LayerToWorld { get; protected set; }
         public DefferedMatrix LocalToLayer { get; protected set; }
         public DefferedMatrix LocalToWorld { get; protected set; }
@@ -55,8 +58,6 @@ namespace Polyhedra2DZone {
             distance = Vector3.Dot(n, c - ray.origin) / det;
             return true;
         }
-
-        public virtual Validator ValidatorGetter { get { return validator; } }
         #endregion
         
         protected virtual void GenerateLayerData() {

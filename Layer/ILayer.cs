@@ -12,6 +12,6 @@ namespace Polyhedra2DZone {
 
         bool Raycast(Ray ray, out float t);
 
-        Validator ValidatorGetter { get; }
+        Validator LayerValidator { get; }
     }
 }

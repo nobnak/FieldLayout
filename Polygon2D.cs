@@ -34,13 +34,11 @@ namespace Polyhedra2DZone {
 
             validator.Reset();
             validator.Validation += () => {
-                layer.ValidatorGetter.CheckValidation();
-                transform.hasChanged = false;
+                layer.LayerValidator.CheckValidation();
                 GenerateLayerData();
             };
-            layer.ValidatorGetter.Invalidated += () => validator.Invalidate();
-            validator.SetCheckers(() => 
-                !transform.hasChanged && (layer != null && layer.IsActiveAndEnabledAlsoInEditMode()));
+            layer.LayerValidator.Invalidated += () => validator.Invalidate();
+            validator.SetCheckers(() => layer != null && layer.LayerValidator.IsValid);
         }
         protected virtual void OnValidate() {
             validator.Invalidate();
@@ -115,6 +113,28 @@ namespace Polyhedra2DZone {
                 }
             }
             return index;
+        }
+        public virtual bool TryClosestPoint(Vector2 point, 
+                out ILayer layer, out Vector2 closestPoint, int layerMask = -1) { 
+            validator.CheckValidation();
+
+            var result = false;
+            closestPoint = Vector2.zero;
+            layer = this.layer;
+            if (((1 << gameObject.layer) & layerMask) == 0)
+                return result;
+
+            var minSqDist = float.MaxValue;
+            foreach (var e in layerEdges) {
+                var v = e.ClosestPoint(point);
+                var sqDist = (v - point).sqrMagnitude;
+                if (sqDist < minSqDist) {
+                    result = true;
+                    minSqDist = sqDist;
+                    closestPoint = v;
+                }
+            }
+            return result;
         }
         
         protected virtual void GenerateLayerData() {
