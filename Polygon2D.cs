@@ -8,7 +8,7 @@ using UnityEngine.Events;
 
 namespace Polyhedra2DZone {
     [ExecuteInEditMode]
-    public class Polygon2D : MonoBehaviour {
+    public class Polygon2D : MonoBehaviour, IDistance2D {
         public enum WhichSideEnum { Unknown = 0, Inside, Outside }
 
         public const float EPSILON = 1e-3f;
@@ -114,13 +114,12 @@ namespace Polyhedra2DZone {
             }
             return index;
         }
-        public virtual bool TryClosestPoint(Vector2 point, 
-                out ILayer layer, out Vector2 closestPoint, int layerMask = -1) { 
+        public virtual bool TryClosestPoint(Vector2 point, out Vector2 closest, int layerMask = -1) { 
             validator.CheckValidation();
 
             var result = false;
-            closestPoint = Vector2.zero;
-            layer = this.layer;
+            closest = default(Vector2);
+
             if (((1 << gameObject.layer) & layerMask) == 0)
                 return result;
 
@@ -131,7 +130,7 @@ namespace Polyhedra2DZone {
                 if (sqDist < minSqDist) {
                     result = true;
                     minSqDist = sqDist;
-                    closestPoint = v;
+                    closest = v;
                 }
             }
             return result;

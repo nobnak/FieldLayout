@@ -1,5 +1,6 @@
 ﻿using Gist;
 using Gist.Extensions.Behaviour;
+using Gist.Extensions.ComponentExt;
 using Gist.Intersection;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using UnityEngine.Events;
 namespace Polyhedra2DZone {
 
     [ExecuteInEditMode]
-    public class Polygon2DFacade : MonoBehaviour {
+    public class Polygon2DFacade : MonoBehaviour, IDistance2D {
 
         protected Polygon2D[] polygons;
 
@@ -26,50 +27,25 @@ namespace Polyhedra2DZone {
         }
 #endif
 
-        public virtual bool TryClosestPoint(Vector2 point, 
-                out ILayer layer, out Vector2 closestPoint, int layerMask = -1) {
+        public virtual bool TryClosestPoint(Vector2 point, out Vector2 closest, int layerMask = -1) {
             var result = false;
-            closestPoint = default(Vector2);
-            layer = default(ILayer);
+            closest = default(Vector2);
 
             var minSqDist = float.MaxValue;
             foreach (var poly in polygons) {
                 if (((1 << poly.gameObject.layer) & layerMask) == 0)
                     continue;
 
-                ILayer layerOfPolygon;
                 Vector2 pOnPolygon;
-                if (poly.TryClosestPoint(point, out layerOfPolygon, out pOnPolygon, layerMask)) {
+                if (poly.TryClosestPoint(point, out pOnPolygon, layerMask)) {
                     var sqDist = (pOnPolygon - point).sqrMagnitude;
                     if (sqDist < minSqDist) {
-                        result = true;
                         minSqDist = sqDist;
-                        closestPoint = pOnPolygon;
-                        layer = layerOfPolygon;
+                        closest = pOnPolygon;
                     }
                 }
             }
-
             return result;
-        }
-    }
-
-    public static class ComponentExtension {
-        public static IEnumerable<T> AggregateComponentsInChildren<T>(this Transform parent) 
-            where T:Component {
-
-            if (parent == null)
-                yield break;
-
-            for (var i = 0; i < parent.childCount; i++) {
-                var child = parent.GetChild(i);
-                var comp = child.GetComponent<T>();
-                if (comp != null)
-                    yield return comp;
-                else
-                    foreach (var c in child.AggregateComponentsInChildren<T>())
-                        yield return c;
-            }
         }
     }
 }
