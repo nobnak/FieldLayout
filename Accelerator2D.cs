@@ -70,13 +70,13 @@ namespace Polyhedra2DZone {
                     var m = modelview * cell.Model;
                     var offset = 0f;
                     switch (cell.side) {
-                        case Polygon2D.WhichSideEnum.Inside:
+                        case WhichSideEnum.Inside:
                             offset = 0f;
                             break;
-                        case Polygon2D.WhichSideEnum.Unknown:
+                        case WhichSideEnum.Unknown:
                             offset = 1f;
                             break;
-                        case Polygon2D.WhichSideEnum.Outside:
+                        case WhichSideEnum.Outside:
                             offset = 2f;
                             break;
                     }
@@ -100,14 +100,13 @@ namespace Polyhedra2DZone {
         }
         #endregion
 
-        public Polygon2D.WhichSideEnum Sample(Vector3 pos) {
+        public override WhichSideEnum Side(Vector2 p, int layerMask = -1) {
             validator.CheckValidation();
-
-            var layerPos = (Vector2)layer.LayerToWorld.InverseTransformPoint(pos);
-            var cell = grid[layerPos];
+            
+            var cell = grid[p];
             var side = cell.side;
-            if (side == Polygon2D.WhichSideEnum.Unknown)
-                side = base.Side(layerPos);
+            if (side == WhichSideEnum.Unknown)
+                side = base.Side(p, layerMask);
 
             return side;
         }
@@ -130,7 +129,7 @@ namespace Polyhedra2DZone {
                     var pos = new Vector2(x * cellSize.x, y * cellSize.y) + min;
                     var rect = new Rect(pos, cellSize);
                     if (!fringe.Overlaps(rect))
-                        c.side = Side(rect.center);
+                        c.side = base.Side(rect.center);
 
                     c.area = rect;
                     grid[x, y] = c;
@@ -140,7 +139,7 @@ namespace Polyhedra2DZone {
 
         public struct Cell {
 
-            public Polygon2D.WhichSideEnum side;
+            public WhichSideEnum side;
             public Rect area;
 
             public Matrix4x4 Model {

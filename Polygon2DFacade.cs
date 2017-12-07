@@ -11,38 +11,48 @@ using UnityEngine.Events;
 namespace Polyhedra2DZone {
 
     [ExecuteInEditMode]
-    public class Polygon2DFacade : MonoBehaviour, IDistance2D {
+    public class Polygon2DFacade : MonoBehaviour, IBoundary2D {
 
+        protected int supportLayerMask;
         protected Polygon2D[] polygons;
 
         #region Unity
         void OnEnable() {
             polygons = transform.AggregateComponentsInChildren<Polygon2D>().ToArray();
+            supportLayerMask = 0;
+            foreach (var p in polygons)
+                supportLayerMask |= p.SupportLayerMask;
         }
         #endregion
 
-#if false
-        public virtual Polygon2D.WhichSideEnum Side(Vector2 p, int layerMask) {
+        public int SupportLayerMask { get { return supportLayerMask; } }
+        public WhichSideEnum Side(Vector2 p, int layerMask = -1) {
+            var result = WhichSideEnum.Outside;
 
+            foreach (var poly in polygons) {
+                if ((poly.SupportLayerMask & layerMask) == 0)
+                    continue;
+
+                result = poly.Side(p, layerMask);
+                if (result == WhichSideEnum.Inside)
+                    return result;
+            }
+            return result;
         }
-#endif
 
-        public virtual bool TryClosestPoint(Vector2 point, out Vector2 closest, int layerMask = -1) {
-            var result = false;
-            closest = default(Vector2);
+        public virtual Vector2 ClosestPoint(Vector2 point, int layerMask = -1) {
+            var result = default(Vector2);
 
             var minSqDist = float.MaxValue;
             foreach (var poly in polygons) {
-                if (((1 << poly.gameObject.layer) & layerMask) == 0)
+                if ((poly.SupportLayerMask & layerMask) == 0)
                     continue;
 
-                Vector2 pOnPolygon;
-                if (poly.TryClosestPoint(point, out pOnPolygon, layerMask)) {
-                    var sqDist = (pOnPolygon - point).sqrMagnitude;
-                    if (sqDist < minSqDist) {
-                        minSqDist = sqDist;
-                        closest = pOnPolygon;
-                    }
+                var pOnPolygon = poly.ClosestPoint(point, layerMask);
+                var sqDist = (pOnPolygon - point).sqrMagnitude;
+                if (sqDist < minSqDist) {
+                    minSqDist = sqDist;
+                    result = pOnPolygon;
                 }
             }
             return result;

@@ -8,8 +8,7 @@ using UnityEngine.Events;
 
 namespace Polyhedra2DZone {
     [ExecuteInEditMode]
-    public class Polygon2D : MonoBehaviour, IDistance2D {
-        public enum WhichSideEnum { Unknown = 0, Inside, Outside }
+    public class Polygon2D : MonoBehaviour, IBoundary2D {
 
         public const float EPSILON = 1e-3f;
         public const float CIRCLE_INV_DEG = 1f / 360;
@@ -90,16 +89,7 @@ namespace Polyhedra2DZone {
             }
         }
         public Rect LayerBounds { get { return layerBounds; } }
-
-        public virtual WhichSideEnum Side(Vector2 p) {
-            validator.CheckValidation();
-            var totalAngle = 0f;
-            foreach (var e in IterateEdges())
-                totalAngle += e.Angle(p);
-            return (Mathf.RoundToInt(totalAngle * CIRCLE_INV_DEG) != 0)
-                ? WhichSideEnum.Inside : WhichSideEnum.Outside;
-        }
-        public virtual int ClosestVertexIndex(Vector2 p) {
+        public virtual int ClosestVertexIndex(Vector2 p, int layerMask = -1) {
             validator.CheckValidation();
             var index = -1;
 
@@ -114,13 +104,23 @@ namespace Polyhedra2DZone {
             }
             return index;
         }
-        public virtual bool TryClosestPoint(Vector2 point, out Vector2 closest, int layerMask = -1) { 
+
+        public virtual int SupportLayerMask {
+            get { return 1 << gameObject.layer; }
+        }
+        public virtual WhichSideEnum Side(Vector2 p, int layerMask = -1) {
             validator.CheckValidation();
-
-            var result = false;
-            closest = default(Vector2);
-
-            if (((1 << gameObject.layer) & layerMask) == 0)
+            var totalAngle = 0f;
+            foreach (var e in IterateEdges())
+                totalAngle += e.Angle(p);
+            return (Mathf.RoundToInt(totalAngle * CIRCLE_INV_DEG) != 0)
+                ? WhichSideEnum.Inside : WhichSideEnum.Outside;
+        }
+        public virtual Vector2 ClosestPoint(Vector2 point, int layerMask = -1) { 
+            validator.CheckValidation();
+            
+            var result = default(Vector2);
+            if ((SupportLayerMask & layerMask) == 0)
                 return result;
 
             var minSqDist = float.MaxValue;
@@ -128,9 +128,8 @@ namespace Polyhedra2DZone {
                 var v = e.ClosestPoint(point);
                 var sqDist = (v - point).sqrMagnitude;
                 if (sqDist < minSqDist) {
-                    result = true;
                     minSqDist = sqDist;
-                    closest = v;
+                    result = v;
                 }
             }
             return result;
