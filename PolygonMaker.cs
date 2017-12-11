@@ -1,8 +1,8 @@
-﻿using Gist;
-using Gist.InputDevice;
+﻿using nobnak.Gist;
+using nobnak.Gist.InputDevice;
 using System.Collections.Generic;
 using UnityEngine;
-using Gist.Extensions.Behaviour;
+using nobnak.Gist.Extensions.Behaviour;
 
 namespace Polyhedra2DZone {
 

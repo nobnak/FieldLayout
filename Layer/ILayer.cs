@@ -1,4 +1,4 @@
-﻿using Gist;
+﻿using nobnak.Gist;
 using UnityEngine;
 using UnityEngine.Events;
 

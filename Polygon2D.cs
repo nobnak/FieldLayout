@@ -1,7 +1,5 @@
-﻿using Gist;
-using Gist.Extensions.Behaviour;
-using Gist.Intersection;
-using System.Collections;
+﻿using nobnak.Gist;
+using nobnak.Gist.Intersection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;

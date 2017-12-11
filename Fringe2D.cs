@@ -1,7 +1,7 @@
-﻿using Gist;
-using Gist.Extensions.AABB;
-using Gist.Extensions.Behaviour;
-using Gist.Intersection;
+﻿using nobnak.Gist;
+using nobnak.Gist.Extensions.AABB;
+using nobnak.Gist.Extensions.Behaviour;
+using nobnak.Gist.Intersection;
 using System.Collections.Generic;
 using UnityEngine;
 

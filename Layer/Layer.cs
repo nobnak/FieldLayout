@@ -1,8 +1,5 @@
-﻿using Gist;
-using System.Collections;
-using System.Collections.Generic;
+﻿using nobnak.Gist;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Polyhedra2DZone {
 

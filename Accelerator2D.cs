@@ -1,11 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Gist;
-using UnityEngine.Events;
-using Gist.Scoped;
-using Gist.Extensions.Behaviour;
+﻿using nobnak.Gist;
+using nobnak.Gist.Extensions.Behaviour;
 using Polyhedra2DZone.SpacePartition;
+using UnityEngine;
 
 namespace Polyhedra2DZone {
 

@@ -1,12 +1,6 @@
-﻿using Gist;
-using Gist.Extensions.Behaviour;
-using Gist.Extensions.ComponentExt;
-using Gist.Intersection;
-using System.Collections;
-using System.Collections.Generic;
+﻿using nobnak.Gist.Extensions.ComponentExt;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Polyhedra2DZone {
 
