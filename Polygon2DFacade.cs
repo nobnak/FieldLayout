@@ -19,30 +19,25 @@ namespace Polyhedra2DZone {
         }
         #endregion
 
+        #region IBoundary2D
         public int SupportLayerMask { get { return supportLayerMask; } }
-        public WhichSideEnum Side(Vector2 p, int layerMask = -1) {
+
+        public WhichSideEnum Side(Vector2 p) {
             var result = WhichSideEnum.Outside;
 
             foreach (var poly in polygons) {
-                if ((poly.SupportLayerMask & layerMask) == 0)
-                    continue;
-
-                result = poly.Side(p, layerMask);
+                result = poly.Side(p);
                 if (result == WhichSideEnum.Inside)
                     return result;
             }
             return result;
         }
-
-        public virtual Vector2 ClosestPoint(Vector2 point, int layerMask = -1) {
+        public virtual Vector2 ClosestPoint(Vector2 point) {
             var result = default(Vector2);
 
             var minSqDist = float.MaxValue;
             foreach (var poly in polygons) {
-                if ((poly.SupportLayerMask & layerMask) == 0)
-                    continue;
-
-                var pOnPolygon = poly.ClosestPoint(point, layerMask);
+                var pOnPolygon = poly.ClosestPoint(point);
                 var sqDist = (pOnPolygon - point).sqrMagnitude;
                 if (sqDist < minSqDist) {
                     minSqDist = sqDist;
@@ -51,5 +46,6 @@ namespace Polyhedra2DZone {
             }
             return result;
         }
+        #endregion
     }
 }

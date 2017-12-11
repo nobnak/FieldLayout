@@ -6,6 +6,7 @@ namespace Polyhedra2DZone {
     [ExecuteInEditMode]
     public class Layer : MonoBehaviour, ILayer {
 
+        public const string MSG_CROWN_LAYER = "CrownLayer";
         public const float EPSILON = 1e-3f;
         public const float CIRCLE_INV_DEG = 1f / 360;
 
@@ -25,6 +26,7 @@ namespace Polyhedra2DZone {
                 GenerateLayerData();
             };
             LayerValidator.SetCheckers(() => !transform.hasChanged);
+            BroadcastCrownLayer();
         }
         protected virtual void Update() {
         }
@@ -57,6 +59,9 @@ namespace Polyhedra2DZone {
         }
         #endregion
         
+        protected virtual void BroadcastCrownLayer() {
+            BroadcastMessage(MSG_CROWN_LAYER, this, SendMessageOptions.DontRequireReceiver);
+        }
         protected virtual void GenerateLayerData() {
             var layer = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
             var local = Matrix4x4.Scale(transform.localScale);

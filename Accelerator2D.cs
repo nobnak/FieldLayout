@@ -96,13 +96,13 @@ namespace Polyhedra2DZone {
         }
         #endregion
 
-        public override WhichSideEnum Side(Vector2 p, int layerMask = -1) {
+        public override WhichSideEnum Side(Vector2 p) {
             validator.CheckValidation();
             
             var cell = grid[p];
             var side = cell.side;
             if (side == WhichSideEnum.Unknown)
-                side = base.Side(p, layerMask);
+                side = base.Side(p);
 
             return side;
         }

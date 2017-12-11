@@ -13,13 +13,19 @@ namespace Polyhedra2DZone {
 
         public UnityEvent OnGenerate;
 
-        public Layer layer;
+        [SerializeField] protected Layer layer;
         [SerializeField] protected PolygonData data;
 
         protected Validator validator = new Validator();
         protected List<Vector2> layerVertices = new List<Vector2>();
         protected List<Edge2D> layerEdges = new List<Edge2D>();
         protected AABB2 layerBounds = new AABB2();
+
+        public DefferedMatrix NormalizedToLocal { get; protected set; }
+
+        public Polygon2D() {
+            NormalizedToLocal = new DefferedMatrix();
+        }
 
         #region Unity
         protected virtual void OnEnable() {
@@ -29,18 +35,33 @@ namespace Polyhedra2DZone {
                 return;
             }
 
+            if (layer == null) {
+                enabled = false;
+                return;
+            }
+
             validator.Reset();
             validator.Validation += () => {
                 layer.LayerValidator.CheckValidation();
                 GenerateLayerData();
+                transform.hasChanged = false;
             };
             layer.LayerValidator.Invalidated += () => validator.Invalidate();
-            validator.SetCheckers(() => layer != null && layer.LayerValidator.IsValid);
+            validator.SetCheckers(() => layer != null 
+                && layer.LayerValidator.IsValid 
+                && !transform.hasChanged);
         }
         protected virtual void OnValidate() {
             validator.Invalidate();
         }
         protected virtual void OnDisable() {
+        }
+        #endregion
+
+        #region Message
+        protected virtual void CrownLayer(Layer layer) {
+            this.layer = layer;
+            enabled = (layer != null);
         }
         #endregion
 
@@ -87,7 +108,7 @@ namespace Polyhedra2DZone {
             }
         }
         public Rect LayerBounds { get { return layerBounds; } }
-        public virtual int ClosestVertexIndex(Vector2 p, int layerMask = -1) {
+        public virtual int ClosestVertexIndex(Vector2 p) {
             validator.CheckValidation();
             var index = -1;
 
@@ -103,10 +124,12 @@ namespace Polyhedra2DZone {
             return index;
         }
 
+        #region IBoundary2D
         public virtual int SupportLayerMask {
             get { return 1 << gameObject.layer; }
         }
-        public virtual WhichSideEnum Side(Vector2 p, int layerMask = -1) {
+
+        public virtual WhichSideEnum Side(Vector2 p) {
             validator.CheckValidation();
             var totalAngle = 0f;
             foreach (var e in IterateEdges())
@@ -114,17 +137,14 @@ namespace Polyhedra2DZone {
             return (Mathf.RoundToInt(totalAngle * CIRCLE_INV_DEG) != 0)
                 ? WhichSideEnum.Inside : WhichSideEnum.Outside;
         }
-        public virtual Vector2 ClosestPoint(Vector2 point, int layerMask = -1) { 
+        public virtual Vector2 ClosestPoint(Vector2 p) { 
             validator.CheckValidation();
             
             var result = default(Vector2);
-            if ((SupportLayerMask & layerMask) == 0)
-                return result;
-
             var minSqDist = float.MaxValue;
             foreach (var e in layerEdges) {
-                var v = e.ClosestPoint(point);
-                var sqDist = (v - point).sqrMagnitude;
+                var v = e.ClosestPoint(p);
+                var sqDist = (v - p).sqrMagnitude;
                 if (sqDist < minSqDist) {
                     minSqDist = sqDist;
                     result = v;
@@ -132,21 +152,28 @@ namespace Polyhedra2DZone {
             }
             return result;
         }
+        #endregion
         
         protected virtual void GenerateLayerData() {
             layerVertices.Clear();
             layerEdges.Clear();
             layerBounds.Clear();
+            
+            NormalizedToLocal.Reset(transform.LocalToParent());
 
             var limit = data.normalizedVertices.Count;
-            var local = layer.LocalToLayer;
+            var localToLayer = layer.LocalToLayer;
             for (var i = 0; i < limit; i++) {
                 var j = (i + 1) % limit;
-                var v0 = (Vector2)local.TransformPoint(data.normalizedVertices[i]);
-                var v1 = (Vector2)local.TransformPoint(data.normalizedVertices[j]);
-                layerVertices.Add(v0);
-                layerEdges.Add(new Edge2D(v0, v1));
-                layerBounds.Encapsulate(v0);
+                var vl0 = (Vector2)localToLayer.TransformPoint(
+                    NormalizedToLocal.TransformPoint(
+                        data.normalizedVertices[i]));
+                var vl1 = (Vector2)localToLayer.TransformPoint(
+                    NormalizedToLocal.TransformPoint(
+                        data.normalizedVertices[j]));
+                layerVertices.Add(vl0);
+                layerEdges.Add(new Edge2D(vl0, vl1));
+                layerBounds.Encapsulate(vl0);
             }
 
             OnGenerate.Invoke();
