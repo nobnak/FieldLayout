@@ -42,10 +42,12 @@ namespace Polyhedra2DZone {
                 GenerateGrid();
             };
             base.validator.Invalidated += () => validator.Invalidate();
+            validator.SetCheckers(() => base.validator.IsValid);
         }
         protected void OnRenderObject() {
-            if (!debugEnabled || !this.IsActiveAndEnabledAlsoInEditMode()
-                || !validator.CheckValidation())
+            if (!this.IsActiveAndEnabledAlsoInEditMode()
+                || !validator.CheckValidation()
+                || !debugEnabled)
                 return;
 
             if (debugFringeEnabled) {
@@ -98,7 +100,10 @@ namespace Polyhedra2DZone {
 
         public override WhichSideEnum Side(Vector2 p) {
             validator.CheckValidation();
-            
+
+            if (!layerBounds.Contains(p))
+                return WhichSideEnum.Outside;
+
             var cell = grid[p];
             var side = cell.side;
             if (side == WhichSideEnum.Unknown)

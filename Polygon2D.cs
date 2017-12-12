@@ -131,6 +131,7 @@ namespace Polyhedra2DZone {
 
         public virtual WhichSideEnum Side(Vector2 p) {
             validator.CheckValidation();
+
             var totalAngle = 0f;
             foreach (var e in IterateEdges())
                 totalAngle += e.Angle(p);
