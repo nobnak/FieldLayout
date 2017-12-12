@@ -21,10 +21,10 @@ namespace Polyhedra2DZone {
         protected List<Edge2D> layerEdges = new List<Edge2D>();
         protected AABB2 layerBounds = new AABB2();
 
-        public DefferedMatrix NormalizedToLocal { get; protected set; }
+        public DefferedMatrix LocalToLayer { get; protected set; }
 
         public Polygon2D() {
-            NormalizedToLocal = new DefferedMatrix();
+            LocalToLayer = new DefferedMatrix();
         }
 
         #region Unity
@@ -67,24 +67,24 @@ namespace Polyhedra2DZone {
 
         #region Vertex
         public virtual int VertexCount {
-            get { return data.normalizedVertices.Count; }
+            get { return data.localVertices.Count; }
         }
         public virtual Vector2 GetVertex(int i) {
-            return data.normalizedVertices[i];
+            return data.localVertices[i];
         }
         public virtual void SetVertex(int i, Vector2 value) {
             validator.Invalidate();
-            data.normalizedVertices[i] = value;
+            data.localVertices[i] = value;
         }
         public virtual int AddVertex(Vector2 v) {
             validator.Invalidate();
-            var i = data.normalizedVertices.Count;
-            data.normalizedVertices.Add(v);
+            var i = data.localVertices.Count;
+            data.localVertices.Add(v);
             return i;
         }
         public virtual void RemoveVertex(int i) {
             validator.Invalidate();
-            data.normalizedVertices.RemoveAt(i);
+            data.localVertices.RemoveAt(i);
         }
         public virtual IEnumerable<Vector2> IterateVertices() {
             validator.CheckValidation();
@@ -158,19 +158,18 @@ namespace Polyhedra2DZone {
             layerVertices.Clear();
             layerEdges.Clear();
             layerBounds.Clear();
-            
-            NormalizedToLocal.Reset(transform.LocalToParent());
 
-            var limit = data.normalizedVertices.Count;
+            var localMat = transform.LocalToParent();
             var localToLayer = layer.LocalToLayer;
+            LocalToLayer.Reset(localToLayer * localMat);
+
+            var limit = data.localVertices.Count;
             for (var i = 0; i < limit; i++) {
                 var j = (i + 1) % limit;
-                var vl0 = (Vector2)localToLayer.TransformPoint(
-                    NormalizedToLocal.TransformPoint(
-                        data.normalizedVertices[i]));
-                var vl1 = (Vector2)localToLayer.TransformPoint(
-                    NormalizedToLocal.TransformPoint(
-                        data.normalizedVertices[j]));
+                var vl0 = (Vector2)LocalToLayer.TransformPoint(
+                        data.localVertices[i]);
+                var vl1 = (Vector2)LocalToLayer.TransformPoint(
+                        data.localVertices[j]);
                 layerVertices.Add(vl0);
                 layerEdges.Add(new Edge2D(vl0, vl1));
                 layerBounds.Encapsulate(vl0);

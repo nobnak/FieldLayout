@@ -37,8 +37,8 @@ namespace Polyhedra2DZone {
                             var p = ray.GetPoint(t);
                             var player = (Vector2)polygon.LayerGetter.LayerToWorld.InverseTransformPoint(p);
                             var j = polygon.ClosestVertexIndex(player);
-                            var v = polygon.GetVertex(j);
-                            var sqd = (v - player).sqrMagnitude;
+                            var vlayer = (Vector2)polygon.LocalToLayer.TransformPoint(polygon.GetVertex(j));
+                            var sqd = (vlayer - player).sqrMagnitude;
                             if (sqd < selectionDistance && sqd < dmin) {
                                 dmin = sqd;
                                 selection.Select(polygon, j);
@@ -115,9 +115,9 @@ namespace Polyhedra2DZone {
 #endif
 
                     if (selection.Selected) {
-                        var layerPos = selection.GetVertex();
-                        var localPos = polygon.LayerGetter.LocalToLayer.InverseTransformPoint(layerPos);
-                        var quadShape = Matrix4x4.TRS(localPos, Quaternion.identity, 0.1f * Vector3.one);
+                        var vlocal = selection.GetVertex();
+                        var vlayer = polygon.LocalToLayer.TransformPoint(vlocal);
+                        var quadShape = Matrix4x4.TRS(vlayer, Quaternion.identity, 0.1f * Vector3.one);
                         glfig.FillQuad(modelView * quadShape, layerColor);
                     }
 
@@ -142,8 +142,8 @@ namespace Polyhedra2DZone {
             var layer = polygon.LayerGetter;
             Vector3 p0, p1;
             if (FindPointOnLayer(layer, rayPrev, out p0) && FindPointOnLayer(layer, rayCurr, out p1)) {
-                dp = layer.LocalToLayer.InverseTransformPoint(
-                    layer.LayerToWorld.InverseTransformPoint(p1 - p0));
+                dp = polygon.LocalToLayer.InverseTransformVector(
+                    layer.LayerToWorld.InverseTransformVector(p1 - p0));
                 return true;
             }
             return false;

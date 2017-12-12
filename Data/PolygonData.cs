@@ -7,6 +7,6 @@ namespace Polyhedra2DZone {
     [CreateAssetMenu]
     public class PolygonData : ScriptableObject {
 
-        public List<Vector2> normalizedVertices = new List<Vector2>();
+        public List<Vector2> localVertices = new List<Vector2>();
     }
 }
