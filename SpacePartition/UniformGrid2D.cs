@@ -7,6 +7,8 @@ namespace Polyhedra2DZone.SpacePartition {
     public class UniformGrid2D<T> : IEnumerable<T> {
         public enum WrapIndexEnum { Clamp = 0, Repeat }
 
+        public const int BIG_NUMBER = 100000;
+
         protected T[] data = new T[0];
         protected int subdivision;
 
@@ -15,6 +17,8 @@ namespace Polyhedra2DZone.SpacePartition {
         protected Vector2 cellSize;
 
         protected Matrix4x4 quantizationMat;
+        protected Vector2 quantizationScale;
+        protected Vector2 quantizationOffset;
 
         public void Init(Vector2 min, Vector2 cellSize, WrapIndexEnum wrapMode = WrapIndexEnum.Clamp) {
             Clear();
@@ -93,14 +97,22 @@ namespace Polyhedra2DZone.SpacePartition {
             }
         }
         public void Quantize(Vector2 p, out int x, out int y) {
+
+#if NOT_OPTIMIZED
             var pquantized = quantizationMat.MultiplyPoint3x4(p);
             x = Mathf.FloorToInt(pquantized.x);
             y = Mathf.FloorToInt(pquantized.y);
+#else
+            var fx = quantizationScale.x * p.x + quantizationOffset.x;
+            var fy = quantizationScale.y * p.y + quantizationOffset.y;
+            x = (int)(fx + BIG_NUMBER) - BIG_NUMBER;
+            y = (int)(fy + BIG_NUMBER) - BIG_NUMBER;
+#endif
         }
 
 
 
-        #region IEnumerator
+#region IEnumerator
         public IEnumerator<T> GetEnumerator() {
             foreach (var c in data)
                 yield return c;
@@ -108,12 +120,17 @@ namespace Polyhedra2DZone.SpacePartition {
         IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
         }
-        #endregion
+#endregion
 
         protected void UpdateQuantizationMatrix() {
             var invSize = new Vector2(1f / cellSize.x, 1f / cellSize.y);
+#if NOT_OPTIMIZED
             quantizationMat = Matrix4x4.TRS(
                 Vector2.Scale(-min, invSize), Quaternion.identity, invSize);
+#else
+            quantizationOffset = Vector2.Scale(-min, invSize);
+            quantizationScale = invSize;
+#endif
         }
         protected void Resize(int nextValue) {
             if (nextValue != subdivision) {

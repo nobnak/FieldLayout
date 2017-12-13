@@ -1,4 +1,6 @@
-﻿using nobnak.Gist;
+﻿//#define WINDING_NUMBER_ALGOTIRHM
+
+using nobnak.Gist;
 using nobnak.Gist.Intersection;
 using System.Collections.Generic;
 using UnityEngine;
@@ -132,11 +134,36 @@ namespace Polyhedra2DZone {
         public virtual WhichSideEnum Side(Vector2 p) {
             validator.CheckValidation();
 
+            #if WINDING_NUMBER_ALGOTIRHM
             var totalAngle = 0f;
             foreach (var e in IterateEdges())
                 totalAngle += e.Angle(p);
             return (Mathf.RoundToInt(totalAngle * CIRCLE_INV_DEG) != 0)
                 ? WhichSideEnum.Inside : WhichSideEnum.Outside;
+            
+            #else
+
+            var c = 0;
+            foreach (var e in IterateEdges()) {
+                var v0 = e.v0;
+                var v1 = e.v1;
+
+                var x0 = v0.x;
+                var y0 = v0.y;
+                var x1 = v1.x;
+                var y1 = v1.y;
+                var xp = p.x;
+                var yp = p.y;
+
+                if ((y0 <= yp && yp < y1) || (y1 <= yp && yp < y0)) {
+                    var t = (yp - y0) / (y1 - y0);
+                    var xt = x0 + t * (x1 - x0);
+                    if (xt <= xp)
+                        c++;
+                }
+            }
+            return ((c % 2) == 0 ? WhichSideEnum.Outside : WhichSideEnum.Inside);
+            #endif
         }
         public virtual Vector2 ClosestPoint(Vector2 p) { 
             validator.CheckValidation();
@@ -153,7 +180,7 @@ namespace Polyhedra2DZone {
             }
             return result;
         }
-        #endregion
+#endregion
         
         protected virtual void GenerateLayerData() {
             layerVertices.Clear();
