@@ -8,35 +8,28 @@ using UnityEngine.Events;
 
 namespace Polyhedra2DZone {
     [ExecuteInEditMode]
-    public class Polygon2D : MonoBehaviour, IBoundary2D {
+    public class Polygon2D : AbstractBoundary2D {
 
         public const float EPSILON = 1e-3f;
         public const float CIRCLE_INV_DEG = 1f / 360;
 
         public UnityEvent OnGenerate;
-
-        [SerializeField] protected Layer layer;
+        
         [SerializeField] protected PolygonData data;
 
-        protected Validator validator = new Validator();
         protected List<Vector2> layerVertices = new List<Vector2>();
         protected List<Edge2D> layerEdges = new List<Edge2D>();
         protected AABB2 layerBounds = new AABB2();
 
-        public DefferedMatrix LocalToLayer { get; protected set; }
-
-        public Polygon2D() {
-            LocalToLayer = new DefferedMatrix();
-        }
-
         #region Unity
-        protected virtual void OnEnable() {
+        protected override void OnEnable() {
+            base.OnEnable();
+
             if (data == null) {
                 Debug.LogFormat("PolygonData not found");
                 enabled = false;
                 return;
             }
-
             if (layer == null) {
                 enabled = false;
                 return;
@@ -57,13 +50,6 @@ namespace Polyhedra2DZone {
             validator.Invalidate();
         }
         protected virtual void OnDisable() {
-        }
-        #endregion
-
-        #region Message
-        protected virtual void CrownLayer(Layer layer) {
-            this.layer = layer;
-            enabled = (layer != null);
         }
         #endregion
 
@@ -126,12 +112,8 @@ namespace Polyhedra2DZone {
             return index;
         }
 
-        #region IBoundary2D
-        public virtual int SupportLayerMask {
-            get { return 1 << gameObject.layer; }
-        }
-
-        public virtual WhichSideEnum Side(Vector2 p) {
+        #region AbstractBoundary2D
+        public override WhichSideEnum Side(Vector2 p) {
             validator.CheckValidation();
 
             #if WINDING_NUMBER_ALGOTIRHM
@@ -165,7 +147,7 @@ namespace Polyhedra2DZone {
             return ((c % 2) == 0 ? WhichSideEnum.Outside : WhichSideEnum.Inside);
             #endif
         }
-        public virtual Vector2 ClosestPoint(Vector2 p) { 
+        public override Vector2 ClosestPoint(Vector2 p) { 
             validator.CheckValidation();
             
             var result = default(Vector2);
@@ -180,7 +162,7 @@ namespace Polyhedra2DZone {
             }
             return result;
         }
-#endregion
+        #endregion
         
         protected virtual void GenerateLayerData() {
             layerVertices.Clear();

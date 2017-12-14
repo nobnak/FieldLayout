@@ -8,12 +8,14 @@ namespace Polyhedra2DZone {
     [ExecuteInEditMode]
     public class Accelerator2D : Polygon2D {
         
+        [Header("Accelerator")]
         [Range(10, 100)]
         [SerializeField] protected int subdivision = 10;
         [SerializeField] protected Fringe2D fringe;
-
+        
         [Header("Debug")]
-        [SerializeField] protected bool debugEnabled = true;
+        [SerializeField]
+        protected bool debugEnabled = true;
         [SerializeField] protected bool debugFringeEnabled = true;
         [SerializeField] protected bool debugGridEnabled = true;
         [SerializeField] protected Color debugColorFringeBoundary = Color.blue;
@@ -23,14 +25,12 @@ namespace Polyhedra2DZone {
         
         protected UniformGrid2D<Cell> grid;
         protected new Validator validator = new Validator();
-        protected GLFigure fig;
 
         #region Unity
         protected override void OnEnable() {
             base.OnEnable();
             
             grid = new UniformGrid2D<Cell>();
-            fig = new GLFigure();
 
             fig.glmat.ZOffset = 1f;
             fringe.Init(this);
