@@ -1,5 +1,7 @@
 ﻿using nobnak.Gist;
 using nobnak.Gist.Extensions.Behaviour;
+using nobnak.Gist.Layer2;
+using nobnak.Gist.Primitive;
 using UnityEngine;
 
 namespace Polyhedra2DZone {

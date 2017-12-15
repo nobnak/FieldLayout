@@ -2,6 +2,7 @@
 
 using nobnak.Gist;
 using nobnak.Gist.Intersection;
+using nobnak.Gist.Layer2;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;

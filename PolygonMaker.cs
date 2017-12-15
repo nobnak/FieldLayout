@@ -3,6 +3,7 @@ using nobnak.Gist.InputDevice;
 using System.Collections.Generic;
 using UnityEngine;
 using nobnak.Gist.Extensions.Behaviour;
+using nobnak.Gist.Layer2;
 
 namespace Polyhedra2DZone {
 
