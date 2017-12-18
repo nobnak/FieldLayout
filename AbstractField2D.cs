@@ -5,8 +5,9 @@ using nobnak.Gist.Primitive;
 using UnityEngine;
 
 namespace Polyhedra2DZone {
+
     [ExecuteInEditMode]
-    public abstract class AbstractBoundary2D : MonoBehaviour {
+    public abstract class AbstractField2D : MonoBehaviour {
 
         public abstract WhichSideEnum Side(Vector2 p);
         public abstract Vector2 ClosestPoint(Vector2 p);
@@ -14,17 +15,20 @@ namespace Polyhedra2DZone {
         [SerializeField] protected Layer layer;
 
         protected Validator validator = new Validator();
-        protected GLFigure fig;
 
-        public DefferedMatrix LocalToLayer { get; protected set; }
+        private GLFigure fig;
 
-        public AbstractBoundary2D() {
+        public AbstractField2D() {
             LocalToLayer = new DefferedMatrix();
         }
 
         #region Unity
-        protected virtual void OnEnable() {
-            fig = new GLFigure();
+        protected virtual void OnEnable() { }
+        protected virtual void OnDisable() {
+            if (fig != null) {
+                fig.Dispose();
+                fig = null;
+            }
         }
         #endregion
 
@@ -36,12 +40,21 @@ namespace Polyhedra2DZone {
         }
         #endregion
 
-        public bool CanRender {
+        public abstract Rect LayerBounds { get; }
+        public abstract void Draw(GLFigure fig);
+
+        public virtual DefferedMatrix LocalToLayer { get; protected set; }
+        public virtual bool CanRender {
             get {
                 return this.IsActiveAndEnabledAlsoInEditMode() && validator.CheckValidation();
             }
         }
 
+        protected GLFigure GetGLFigure() {
+            if (fig == null)
+                fig = new GLFigure();
+            return fig;
+        }
         protected virtual void UpdateLocalToLayer() {
             var localMat = transform.LocalToParent();
             var localToLayer = layer.LocalToLayer;

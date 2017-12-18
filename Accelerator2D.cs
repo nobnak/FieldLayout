@@ -32,7 +32,6 @@ namespace Polyhedra2DZone {
             
             grid = new UniformGrid2D<Cell>();
 
-            fig.glmat.ZOffset = 1f;
             fringe.Init(this);
 
             validator.Reset();
@@ -50,6 +49,7 @@ namespace Polyhedra2DZone {
                 || !debugEnabled)
                 return;
 
+            var fig = GetGLFigure();
             if (debugFringeEnabled) {
                 fig.glmat.ZOffset = 0f;
                 fringe.OnRenderObject(fig);
@@ -60,7 +60,8 @@ namespace Polyhedra2DZone {
                 var modelview = Camera.current.worldToCameraMatrix * layer.LayerToWorld;
                 var bounds = fringe.Bounds;
                 var shape = Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size);
-                fig.DrawQuad(modelview * shape, debugColorFringeBoundary);
+                fig.CurrentColor = debugColorFringeBoundary;
+                fig.DrawQuad(modelview * shape);
 
                 float h, s, v;
                 Color.RGBToHSV(debugColorCell, out h, out s, out v);
@@ -84,16 +85,14 @@ namespace Polyhedra2DZone {
 
                     var c = Color.HSVToRGB(cellType, s, v);
                     c.a = debugColorCell.a;
-                    fig.FillQuad(m, 0.5f * c);
-                    fig.DrawQuad(m, c);
+                    fig.CurrentColor = 0.5f * c;
+                    fig.FillQuad(m);
+                    fig.CurrentColor = c;
+                    fig.DrawQuad(m);
                 }
             }
         }
         protected override void OnDisable() {
-            if (fig != null) {
-                fig.Dispose();
-                fig = null;
-            }
             base.OnDisable();
         }
         #endregion

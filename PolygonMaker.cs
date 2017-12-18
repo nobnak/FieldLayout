@@ -89,42 +89,31 @@ namespace Polyhedra2DZone {
                 var view = Camera.current.worldToCameraMatrix;
                 var modelMat = polygon.LayerGetter.LayerToWorld;
                 var modelView = view * modelMat;
-                GL.PushMatrix();
-                try {
-                    GL.LoadIdentity();
-                    GL.MultMatrix(modelView);
+                glfig.CurrentColor = layerColor;
+                polygon.Draw(glfig);
 
-                    GL.Begin(GL.LINES);
-                    glmat.Color(layerColor);
-                    foreach (var e in polygon.IterateEdges()) {
-                        GL.Vertex(e.v0);
-                        GL.Vertex(e.v1);
-                    }
-                    GL.End();
-
-                    var bounds = polygon.LayerBounds;
-                    var boundsMat = Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size);
-                    glfig.DrawQuad(modelView * boundsMat, 0.5f * layerColor);
+                var bounds = polygon.LayerBounds;
+                var boundsMat = Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size);
+                glfig.CurrentColor = 0.5f * layerColor;
+                glfig.DrawQuad(modelView * boundsMat);
 
 #if UNITY_EDITOR
-                    var labelPos = modelMat.Matrix.MultiplyPoint3x4(new Vector2(bounds.xMin, bounds.yMax));
-                    var offset = modelMat.Matrix.MultiplyVector(
-                        (0.2f * UnityEditor.HandleUtility.GetHandleSize(labelPos))
-                        * Vector2.up);
-                    UnityEditor.Handles.Label(labelPos + offset, string.Format("{0}({1}) / {2}",
-                        layerId, LayerMask.LayerToName(layerId), polygon.gameObject.tag));
+                var labelPos = modelMat.Matrix.MultiplyPoint3x4(new Vector2(bounds.xMin, bounds.yMax));
+                var offset = modelMat.Matrix.MultiplyVector(
+                    (0.2f * UnityEditor.HandleUtility.GetHandleSize(labelPos))
+                    * Vector2.up);
+                UnityEditor.Handles.Label(labelPos + offset, string.Format("{0}({1}) / {2}",
+                    layerId, LayerMask.LayerToName(layerId), polygon.gameObject.tag));
 #endif
 
-                    if (selection.Selected) {
-                        var vlocal = selection.GetVertex();
-                        var vlayer = polygon.LocalToLayer.TransformPoint(vlocal);
-                        var quadShape = Matrix4x4.TRS(vlayer, Quaternion.identity, 0.1f * Vector3.one);
-                        glfig.FillQuad(modelView * quadShape, layerColor);
-                    }
-
-                } finally {
-                    GL.PopMatrix();
+                if (selection.Selected) {
+                    var vlocal = selection.GetVertex();
+                    var vlayer = polygon.LocalToLayer.TransformPoint(vlocal);
+                    var quadShape = Matrix4x4.TRS(vlayer, Quaternion.identity, 0.1f * Vector3.one);
+                    glfig.CurrentColor = layerColor;
+                    glfig.FillQuad(modelView * quadShape);
                 }
+
             }
         }
         void OnDisable() {

@@ -4,12 +4,13 @@ using nobnak.Gist;
 using nobnak.Gist.Intersection;
 using nobnak.Gist.Layer2;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace Polyhedra2DZone {
     [ExecuteInEditMode]
-    public class Polygon2D : AbstractBoundary2D {
+    public class Polygon2D : AbstractField2D {
 
         public const float EPSILON = 1e-3f;
         public const float CIRCLE_INV_DEG = 1f / 360;
@@ -50,7 +51,8 @@ namespace Polyhedra2DZone {
         protected virtual void OnValidate() {
             validator.Invalidate();
         }
-        protected virtual void OnDisable() {
+        protected override void OnDisable() {
+            base.OnDisable();
         }
         #endregion
 
@@ -88,6 +90,23 @@ namespace Polyhedra2DZone {
             foreach (var e in layerEdges)
                 yield return e;
         }
+        public virtual IEnumerable<Vector2> IterateEdgeVertices() {
+            validator.CheckValidation();
+            foreach (var e in layerEdges) {
+                yield return e.v0;
+                yield return e.v1;
+            }
+        }
+        #endregion
+
+        #region Base
+        public override Rect LayerBounds { get { return layerBounds; } }
+        public override void Draw(GLFigure fig) {
+            validator.CheckValidation();
+            
+            var modelView = Camera.current.worldToCameraMatrix * layer.LayerToWorld;
+            fig.DrawLines(IterateEdgeVertices().Select(v=>(Vector3)v), modelView);
+        }
         #endregion
 
         public Layer LayerGetter {
@@ -96,7 +115,6 @@ namespace Polyhedra2DZone {
                 return layer;
             }
         }
-        public Rect LayerBounds { get { return layerBounds; } }
         public virtual int ClosestVertexIndex(Vector2 p) {
             validator.CheckValidation();
             var index = -1;

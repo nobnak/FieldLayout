@@ -31,12 +31,15 @@ namespace Polyhedra2DZone {
             foreach (var obb in boundaries) {
                 var m = modelview * obb.Model;
                 var halfColor = 0.5f * debugBoundaryColor;
-                fig.FillQuad(m, halfColor);
-                fig.DrawQuad(m, debugBoundaryColor);
+                fig.CurrentColor = halfColor;
+                fig.FillQuad(m);
+                fig.CurrentColor = debugBoundaryColor;
+                fig.DrawQuad(m);
 
                 var aabb = obb.WorldBounds;
                 var aabbModel = Matrix4x4.TRS(aabb.center, Quaternion.identity, aabb.size);
-                fig.DrawQuad(modelview * aabbModel, 0.5f * halfColor);
+                fig.CurrentColor = 0.5f * halfColor;
+                fig.DrawQuad(modelview * aabbModel);
             }
         }
         

@@ -2,12 +2,12 @@
 
 using Gist.Extensions.RectExt;
 using nobnak.Gist;
-using nobnak.Gist.Extensions.Behaviour;
 using UnityEngine;
 
 namespace Polyhedra2DZone {
 
-    public class Rectangle2D : AbstractBoundary2D {
+    [ExecuteInEditMode]
+    public class Rectangle2D : AbstractField2D {
         public static readonly Vector2 DEFAULT_SIZE = Vector2.one;
 
         [SerializeField] protected Rect field = new Rect(-0.5f * DEFAULT_SIZE, DEFAULT_SIZE);
@@ -45,23 +45,34 @@ namespace Polyhedra2DZone {
         void OnRenderObject() {
             if (!CanRender || !debugEnabled)
                 return;
-            
+
+            var fig = GetGLFigure();
+            fig.CurrentColor = debugColor;
+            Draw(fig);
+        }
+        #endregion
+
+        #region Base
+        public override Rect LayerBounds {
+            get { return layerField; }
+        }
+        public override void Draw(GLFigure fig) {
             var modelview = Camera.current.worldToCameraMatrix * layer.LayerToWorld;
             var shape = Matrix4x4.TRS(layerField.center, Quaternion.identity, layerField.size);
-            fig.DrawQuad(modelview * shape, debugColor);
+            fig.DrawQuad(modelview * shape);
         }
         #endregion
 
         public override WhichSideEnum Side(Vector2 p) {
             validator.CheckValidation();
-#if NO_OPTIMIZATION
+            #if NO_OPTIMIZATION
             return layerField.Contains(p) ? WhichSideEnum.Inside : WhichSideEnum.Outside;
-#else
+            #else
             var x = p.x - layerFieldMin.x;
             var y = p.y - layerFieldMin.y;
             return (0 <= x && x < layerFieldSize.x && 0 <= y && y < layerFieldSize.y)
                 ? WhichSideEnum.Inside : WhichSideEnum.Outside;
-#endif
+            #endif
         }
         public override Vector2 ClosestPoint(Vector2 p) {
             validator.CheckValidation();
