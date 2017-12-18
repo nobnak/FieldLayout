@@ -10,6 +10,8 @@ namespace Polyhedra2DZone {
 
         [SerializeField] protected Layer layer;
         [SerializeField] protected AbstractField2D[] fields;
+        [SerializeField] protected Color baseColor = Color.white;
+        [SerializeField] protected float colorOffsetPerLayer = 0.2f;
 
         protected GLFigure fig;
 
@@ -70,7 +72,11 @@ namespace Polyhedra2DZone {
         }
 
         public Color GetLayerColor(int layer) {
-            return Color.HSVToRGB(layer * 7f / 32, 1f, 1f);
+            float h, s, v;
+            Color.RGBToHSV(baseColor, out h, out s, out v);
+            h += (layer + 1) * colorOffsetPerLayer;
+            h -= Mathf.Floor(h);
+            return Color.HSVToRGB(h, 1f, 1f);
         }
         public Color GetLayerMakColor(int layerMask) {
             var count = 0;
@@ -82,8 +88,7 @@ namespace Polyhedra2DZone {
                     c += GetLayerColor(i).linear;
                 }
             }
-            if (count > 0)
-                c /= count;
+            c = (count > 0) ? (c / count) : baseColor;
             return c.gamma;
         }
     }
