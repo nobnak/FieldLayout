@@ -8,10 +8,10 @@ namespace Polyhedra2DZone {
     [ExecuteInEditMode]
     public class FieldLayout : MonoBehaviour {
 
+        public LayerColorSampler layerColorSampler;
+
         [SerializeField] protected Layer layer;
         [SerializeField] protected AbstractField2D[] fields;
-        [SerializeField] protected Color baseColor = Color.white;
-        [SerializeField] protected float colorOffsetPerLayer = 0.2f;
 
         protected GLFigure fig;
 
@@ -33,7 +33,7 @@ namespace Polyhedra2DZone {
                 var modelView = viewMat * layerToWorldMat;
 
                 var bounds = f.LayerBounds;
-                var layerColor = GetLayerColor(i);
+                var layerColor = layerColorSampler.GetColorOfLayer(i);
                 
                 var boundsMat = Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size);
                 fig.CurrentColor = 0.5f * layerColor;
@@ -50,7 +50,7 @@ namespace Polyhedra2DZone {
                     * Vector2.up);
                 UnityEditor.Handles.Label(
                     labelPos + offset, 
-                    string.Format("{0} : {1}", i, f.gameObject.tag));
+                    string.Format("{0}:{1} / {2}", i, f.name, f.gameObject.tag));
                 #endif
             }
         }
@@ -71,25 +71,7 @@ namespace Polyhedra2DZone {
             return flags;
         }
 
-        public Color GetLayerColor(int layer) {
-            float h, s, v;
-            Color.RGBToHSV(baseColor, out h, out s, out v);
-            h += (layer + 1) * colorOffsetPerLayer;
-            h -= Mathf.Floor(h);
-            return Color.HSVToRGB(h, 1f, 1f);
-        }
-        public Color GetLayerMakColor(int layerMask) {
-            var count = 0;
-            var c = Color.black;
-            for (var i = 0; i < fields.Length; i++) {
-                var bit = 1 << i;
-                if ((layerMask & bit) != 0) {
-                    count++;
-                    c += GetLayerColor(i).linear;
-                }
-            }
-            c = (count > 0) ? (c / count) : baseColor;
-            return c.gamma;
-        }
+        public Layer Layer { get { return layer; } }
+        public AbstractField2D[] Fields { get { return fields; } }
     }
 }
