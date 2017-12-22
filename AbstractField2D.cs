@@ -1,5 +1,6 @@
 ﻿using nobnak.Gist;
 using nobnak.Gist.Extensions.Behaviour;
+using nobnak.Gist.Extensions.ComponentExt;
 using nobnak.Gist.Layer2;
 using nobnak.Gist.Primitive;
 using UnityEngine;
@@ -46,7 +47,9 @@ namespace Polyhedra2DZone {
         public virtual DefferedMatrix LocalToLayer { get; protected set; }
         public virtual bool CanRender {
             get {
-                return this.IsActiveAndEnabledAlsoInEditMode() && validator.CheckValidation();
+                return this.IsActiveAndEnabledAlsoInEditMode()
+                    && this.IsActiveLayer()
+                    && validator.CheckValidation();
             }
         }
 
