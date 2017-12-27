@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace LevelDesign {
+namespace nobnak.FieldLayout {
 
     public enum SideEnum { Outside = 0, Inside, Border }
 

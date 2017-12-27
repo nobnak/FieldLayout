@@ -8,7 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace LevelDesign {
+namespace nobnak.FieldLayout {
 
     [ExecuteInEditMode]
     public class Rectangle : AbstractField {
