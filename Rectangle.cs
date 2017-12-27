@@ -15,6 +15,10 @@ namespace LevelDesign {
 
         [SerializeField] protected Rect localSize = new Rect(-0.5f, -0.5f, 1f, 1f);
 
+        [Header("Debug")]
+        [SerializeField]
+        protected Color debugColor = Color.white;
+
         protected Rect layerInside;
         protected Vector2 layerInsideMin;
         protected Vector2 layerInsideMax;
@@ -28,7 +32,7 @@ namespace LevelDesign {
                 return;
 
             var view = Camera.current.worldToCameraMatrix * layer.LayerToWorld.Matrix;
-            gl.CurrentColor = Color.white;
+            gl.CurrentColor = debugColor;
             gl.DrawQuad(view * Matrix4x4.TRS(
                 layerInside.center, Quaternion.identity, layerInside.size));
             gl.CurrentColor *= 0.5f;
