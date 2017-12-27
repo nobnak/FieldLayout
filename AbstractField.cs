@@ -11,7 +11,7 @@ using UnityEngine;
 namespace LevelDesign {
 
     [ExecuteInEditMode]
-    public abstract class AbstractField : MonoBehaviour {
+    public abstract class AbstractField : MonoBehaviour, Layer.IMessageReceiver {
 
         [SerializeField] protected Layer layer;
         [Range(0f, 10f)]
@@ -48,7 +48,7 @@ namespace LevelDesign {
         #endregion
 
         #region Message
-        protected virtual void CrownLayer(Layer layer) {
+        public virtual void CrownLayer(Layer layer) {
             this.layer = layer;
             if (layer != null)
                 enabled = true;
@@ -57,6 +57,9 @@ namespace LevelDesign {
 
         public abstract SideEnum Side(Vector2 layerPoint);
         public abstract Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside);
+
+        public Layer Layer { get { return layer; } }
+        public DefferedMatrix LocalToLayer { get { return LocalToLayer; } }
 
         protected abstract void Rebuild();
 
