@@ -42,12 +42,9 @@ namespace nobnak.FieldLayout {
         #endregion
         
         public override SideEnum Side(Vector2 layerPoint) {
-            var outsideContained = Contains(layerOutsideMin, layerOutsideMax, layerPoint);
-            if (!outsideContained)
-                return SideEnum.Outside;
-
-            var insideContained = Contains(layerInsideMin, layerInsideMax, layerPoint);
-            return insideContained ? SideEnum.Inside : SideEnum.Border;
+            return ContainsInOuterBoundary(layerPoint)
+                ? (ContainsInInnerBoundary(layerPoint) ? SideEnum.Inside : SideEnum.Border)
+                : SideEnum.Outside;
 
         }
         public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
@@ -57,6 +54,13 @@ namespace nobnak.FieldLayout {
                 default:
                     return layerInside.ClosestPoint(layerPoint);
             }
+        }
+
+        public override bool ContainsInOuterBoundary(Vector2 layerPoint) {
+            return Contains(layerOutsideMin, layerOutsideMax, layerPoint);
+        }
+        public override bool ContainsInInnerBoundary(Vector2 layerPoint) {
+            return Contains(layerInsideMin, layerInsideMax, layerPoint);
         }
 
         protected override void Rebuild() {

@@ -61,6 +61,9 @@ namespace nobnak.FieldLayout {
         public Layer Layer { get { return layer; } }
         public DefferedMatrix LocalToLayer { get { return LocalToLayer; } }
 
+        public abstract bool ContainsInOuterBoundary(Vector2 layerPoint);
+        public abstract bool ContainsInInnerBoundary(Vector2 layerPoint);
+
         protected abstract void Rebuild();
 
         protected virtual bool CanRender {
