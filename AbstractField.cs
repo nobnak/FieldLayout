@@ -56,7 +56,7 @@ namespace nobnak.FieldLayout {
         #endregion
 
         public Layer Layer { get { return layer; } }
-        public DefferedMatrix LocalToLayer { get { return LocalToLayer; } }
+        public DefferedMatrix LocalToLayer { get { return localToLayer; } }
 
         public abstract Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside);
         public abstract ContainsResult ContainsInOuterBoundary(Vector2 layerPoint);
