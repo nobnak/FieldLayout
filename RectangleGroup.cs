@@ -14,12 +14,6 @@ namespace nobnak.FieldLayout {
     public class RectangleGroup : AbstractField {
 
         [SerializeField] protected AbstractField[] fields;
-        
-        public override SideEnum Side(Vector2 layerPoint) {
-            return ContainsInOuterBoundary(layerPoint)
-                ? (ContainsInInnerBoundary(layerPoint) ? SideEnum.Inside : SideEnum.Border)
-                : SideEnum.Outside;
-        }
 
         public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
             var minSqDist = float.MaxValue;
@@ -37,24 +31,26 @@ namespace nobnak.FieldLayout {
             return result;
         }
 
-        public override bool ContainsInOuterBoundary(Vector2 layerPoint) {
+        public override ContainsResult ContainsInOuterBoundary(Vector2 layerPoint) {
             foreach (var f in fields) {
                 if (f == null || !f.IsActiveAndEnabledAlsoInEditMode())
                     continue;
-                if (f.ContainsInOuterBoundary(layerPoint))
-                    return true;
+                var contain = f.ContainsInOuterBoundary(layerPoint);
+                if (contain)
+                    return contain;
             }
-            return false;
+            return default(ContainsResult);
         }
 
-        public override bool ContainsInInnerBoundary(Vector2 layerPoint) {
+        public override ContainsResult ContainsInInnerBoundary(Vector2 layerPoint) {
             foreach (var f in fields) {
                 if (f == null || !f.IsActiveAndEnabledAlsoInEditMode())
                     continue;
-                if (f.ContainsInInnerBoundary(layerPoint))
-                    return true;
+                var contain = f.ContainsInInnerBoundary(layerPoint);
+                if (contain)
+                    return contain;
             }
-            return false;
+            return default(ContainsResult);
         }
 
         protected override void Rebuild() { }

@@ -55,14 +55,22 @@ namespace nobnak.FieldLayout {
         }
         #endregion
 
-        public abstract SideEnum Side(Vector2 layerPoint);
-        public abstract Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside);
-
         public Layer Layer { get { return layer; } }
         public DefferedMatrix LocalToLayer { get { return LocalToLayer; } }
 
-        public abstract bool ContainsInOuterBoundary(Vector2 layerPoint);
-        public abstract bool ContainsInInnerBoundary(Vector2 layerPoint);
+        public abstract Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside);
+        public abstract ContainsResult ContainsInOuterBoundary(Vector2 layerPoint);
+        public abstract ContainsResult ContainsInInnerBoundary(Vector2 layerPoint);
+
+        public virtual SideEnum Side(Vector2 layerPoint) {
+            if (ContainsInOuterBoundary(layerPoint).contain) {
+                if (ContainsInInnerBoundary(layerPoint).contain)
+                    return SideEnum.Inside;
+                else
+                    return SideEnum.Border;
+            }
+            return SideEnum.Outside;
+        }
 
         protected abstract void Rebuild();
 
@@ -70,8 +78,25 @@ namespace nobnak.FieldLayout {
             get {
                 return layer != null 
                     && this.IsActiveAndEnabledAlsoInEditMode()
-              && this.IsActiveLayer()
-              && validator.CheckValidation();
+                    && this.IsActiveLayer()
+                    && validator.CheckValidation();
+            }
+        }
+
+        public enum BoundaryMode { Unknown = 0,Inner, Outer }
+        public struct ContainsResult {
+            public readonly AbstractField tip;
+            public readonly BoundaryMode boundary;
+            public readonly bool contain;
+
+            public ContainsResult(AbstractField tip, bool contain, BoundaryMode boundary = BoundaryMode.Unknown) {
+                this.tip = tip;
+                this.boundary = boundary;
+                this.contain = contain;
+            }
+
+            public static implicit operator bool(ContainsResult cres) {
+                return cres.contain;
             }
         }
     }
