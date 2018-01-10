@@ -15,12 +15,16 @@ namespace nobnak.FieldLayout {
 
         [SerializeField] protected AbstractField[] fields;
 
+        #region Unity
+        private void OnValidate() {
+            validator.Invalidate();
+        }
+        #endregion
+
         public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
             var minSqDist = float.MaxValue;
             var result = Vector2.zero;
-            foreach (var f in fields) {
-                if (f == null || !f.IsActiveAndEnabledAlsoInEditMode())
-                    continue;
+            foreach (var f in IterateAbstractFields()) {
                 var cp = f.ClosestPoint(layerPoint, side);
                 var sqDist = (cp - layerPoint).sqrMagnitude;
                 if (sqDist < minSqDist) {
@@ -32,9 +36,7 @@ namespace nobnak.FieldLayout {
         }
 
         public override ContainsResult ContainsInOuterBoundary(Vector2 layerPoint) {
-            foreach (var f in fields) {
-                if (f == null || !f.IsActiveAndEnabledAlsoInEditMode())
-                    continue;
+            foreach (var f in IterateAbstractFields()) {
                 var contain = f.ContainsInOuterBoundary(layerPoint);
                 if (contain)
                     return contain;
@@ -43,9 +45,7 @@ namespace nobnak.FieldLayout {
         }
 
         public override ContainsResult ContainsInInnerBoundary(Vector2 layerPoint) {
-            foreach (var f in fields) {
-                if (f == null || !f.IsActiveAndEnabledAlsoInEditMode())
-                    continue;
+            foreach (var f in IterateAbstractFields()) {
                 var contain = f.ContainsInInnerBoundary(layerPoint);
                 if (contain)
                     return contain;
@@ -53,6 +53,18 @@ namespace nobnak.FieldLayout {
             return default(ContainsResult);
         }
 
-        protected override void Rebuild() { }
+        public override void Rebuild() {
+            foreach (var f in IterateAbstractFields()) {
+                f.BorderThickness = borderThickness;
+            }
+            Debug.LogFormat("RectangleGroup Rebuld()");
+        }
+        protected IEnumerable<AbstractField> IterateAbstractFields() {
+            foreach (var f in fields) {
+                if (f == null || !f.IsActiveAndEnabledAlsoInEditMode())
+                    continue;
+                yield return f;
+            }
+        }
     }
 }

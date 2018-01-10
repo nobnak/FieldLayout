@@ -59,7 +59,7 @@ namespace nobnak.FieldLayout {
             return new ContainsResult(this, contain, BoundaryMode.Inner);
         }
 
-        protected override void Rebuild() {
+        public override void Rebuild() {
             localToLayer.Reset(layer.LocalToLayer.Matrix,
                 Matrix4x4.TRS(transform.localPosition, Quaternion.identity, transform.localScale));
 

@@ -45,6 +45,9 @@ namespace nobnak.FieldLayout {
         protected virtual void OnDisable() {
             gl.Dispose();
         }
+        protected virtual void Update() {
+            validator.CheckValidation();
+        }
         #endregion
 
         #region Message
@@ -57,10 +60,20 @@ namespace nobnak.FieldLayout {
 
         public Layer Layer { get { return layer; } }
         public DefferedMatrix LocalToLayer { get { return localToLayer; } }
+        public float BorderThickness {
+            get { return borderThickness; }
+            set {
+                validator.Invalidate();
+                Debug.Log("Invalidate() at AbstractField");
+                borderThickness = Mathf.Max(0f, value);
+            }
+        }
 
         public abstract Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside);
         public abstract ContainsResult ContainsInOuterBoundary(Vector2 layerPoint);
         public abstract ContainsResult ContainsInInnerBoundary(Vector2 layerPoint);
+
+        public abstract void Rebuild();
 
         public virtual SideEnum Side(Vector2 layerPoint) {
             if (ContainsInOuterBoundary(layerPoint).contain) {
@@ -71,8 +84,6 @@ namespace nobnak.FieldLayout {
             }
             return SideEnum.Outside;
         }
-
-        protected abstract void Rebuild();
 
         protected virtual bool CanRender {
             get {
