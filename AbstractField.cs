@@ -89,7 +89,7 @@ namespace nobnak.FieldLayout {
             get {
                 return layer != null 
                     && this.IsActiveAndEnabledAlsoInEditMode()
-                    && this.IsActiveLayer()
+                    && this.IsVisibleLayer()
                     && validator.CheckValidation();
             }
         }
