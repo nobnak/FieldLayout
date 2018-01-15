@@ -16,7 +16,8 @@ namespace nobnak.FieldLayout {
         [SerializeField] protected AbstractField[] fields;
 
         #region Unity
-        private void OnValidate() {
+        protected override void OnValidate() {
+            base.OnValidate();
             validator.Invalidate();
         }
         #endregion
