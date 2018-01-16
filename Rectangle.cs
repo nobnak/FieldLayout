@@ -1,12 +1,8 @@
 ﻿using Gist.Extensions.RectExt;
-using nobnak.Gist;
-using nobnak.Gist.Extensions.Behaviour;
-using nobnak.Gist.Extensions.ComponentExt;
-using nobnak.Gist.Layer2;
-using nobnak.Gist.Primitive;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace nobnak.FieldLayout {
 
@@ -38,6 +34,19 @@ namespace nobnak.FieldLayout {
             gl.CurrentColor *= 0.5f;
             gl.DrawQuad(view * Matrix4x4.TRS(
                 layerOutside.center, Quaternion.identity, layerOutside.size));
+        }
+        protected virtual void OnDrawGizmos() {
+            #if UNITY_EDITOR
+                if (!CanRender)
+                    return;
+
+                var layerTopLeft = new Vector2(layerInsideMin.x, layerInsideMax.y);
+                var worldTopLeft = layer.LayerToWorld.TransformPoint(layerTopLeft);
+
+                var style = new GUIStyle();
+                style.normal.textColor = debugColor;
+                Handles.Label(worldTopLeft, string.Format("{0}({1})", gameObject.name, tag), style);
+            #endif
         }
         #endregion
         
