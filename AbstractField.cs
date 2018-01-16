@@ -1,11 +1,8 @@
-﻿using Gist.Extensions.RectExt;
-using nobnak.Gist;
+﻿using nobnak.Gist;
 using nobnak.Gist.Extensions.Behaviour;
 using nobnak.Gist.Extensions.ComponentExt;
 using nobnak.Gist.Layer2;
 using nobnak.Gist.Primitive;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace nobnak.FieldLayout {
