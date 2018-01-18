@@ -13,6 +13,8 @@ namespace nobnak.FieldLayout {
 
         [Header("Debug")]
         [SerializeField]
+        protected bool debugEnabled = true;
+        [SerializeField]
         protected Color debugColor = Color.white;
 
         protected Rect layerInside;
@@ -28,16 +30,22 @@ namespace nobnak.FieldLayout {
                 return;
 
             var view = Camera.current.worldToCameraMatrix * layer.LayerToWorld.Matrix;
+
             gl.CurrentColor = debugColor;
             gl.DrawQuad(view * Matrix4x4.TRS(
                 layerInside.center, Quaternion.identity, layerInside.size));
+
             gl.CurrentColor *= 0.5f;
             gl.DrawQuad(view * Matrix4x4.TRS(
                 layerOutside.center, Quaternion.identity, layerOutside.size));
+
+            gl.CurrentColor *= 0.5f;
+            gl.FillQuad(view * Matrix4x4.TRS(
+                layerInside.center, Quaternion.identity, layerInside.size));
         }
         protected virtual void OnDrawGizmos() {
             #if UNITY_EDITOR
-                if (!CanRender)
+                if (!CanRender || !debugEnabled)
                     return;
 
                 var layerTopLeft = new Vector2(layerInsideMin.x, layerInsideMax.y);
