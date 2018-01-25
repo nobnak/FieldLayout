@@ -18,8 +18,8 @@ namespace nobnak.FieldLayout {
         [SerializeField]
         protected Color debugColor = Color.white;
 
-        protected OBB2 insideBounds = new OBB2();
-        protected OBB2 outsideBounds = new OBB2();
+        protected OBB2 innerBounds = new OBB2();
+        protected OBB2 outerBounds = new OBB2();
 
         #region Unity
         protected virtual void OnRenderObject() {
@@ -27,19 +27,19 @@ namespace nobnak.FieldLayout {
                 return;
 
             var view = Camera.current.worldToCameraMatrix;
-            var model = layer.LayerToWorld.Matrix * localToLayer.Matrix;
+            var layerToWorld = layer.LayerToWorld.Matrix;
 
             var c = debugColor;
             gl.CurrentColor = c;
-            gl.DrawQuad(view * model);
+            gl.DrawQuad(view * layerToWorld * innerBounds.Model);
 
             c.a *= 0.2f;
             gl.CurrentColor = c;
-            gl.DrawQuad(view * model);
+            gl.DrawQuad(view * layerToWorld * outerBounds.Model);
 
             c.a *= 0.2f;
             gl.CurrentColor = c;
-            gl.FillQuad(view * model);
+            gl.FillQuad(view * layerToWorld * innerBounds.Model);
         }
         protected virtual void OnDrawGizmos() {
             #if UNITY_EDITOR
@@ -59,32 +59,35 @@ namespace nobnak.FieldLayout {
         public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
             switch (side) {
                 case SideEnum.Outside:
-                    return outsideBounds.ClosestPoint(layerPoint);
+                    return outerBounds.ClosestPoint(layerPoint);
                 default:
-                    return insideBounds.ClosestPoint(layerPoint);
+                    return innerBounds.ClosestPoint(layerPoint);
             }
         }
 
         public override ContainsResult ContainsInOuterBoundary(Vector2 layerPoint) {
-            var contain = outsideBounds.Contains(layerPoint);
+            var contain = outerBounds.Contains(layerPoint);
             return new ContainsResult(this, contain, BoundaryMode.Outer);
         }
         public override ContainsResult ContainsInInnerBoundary(Vector2 layerPoint) {
-            var contain = insideBounds.Contains(layerPoint);
+            var contain = innerBounds.Contains(layerPoint);
             return new ContainsResult(this, contain, BoundaryMode.Inner);
         }
 
         public override void Rebuild() {
-            localToLayer.Reset(layer.LocalToLayer.Matrix,
-                Matrix4x4.TRS(transform.localPosition, transform.localRotation, transform.localScale));
+            var localToLayerMatrix = Matrix4x4.TRS(transform.localPosition, transform.localRotation, transform.localScale);
+            localToLayer.Reset(layer.LocalToLayer.Matrix, localToLayerMatrix);
 
             var center = (Vector2)localToLayer.TransformPoint(Vector2.zero);
-            var size = (Vector2)localToLayer.TransformVector(Vector2.one);
             var xaxis = (Vector2)localToLayer.TransformVector(Vector2.right);
-            insideBounds.Reset(center, size, xaxis);
+            var yaxis = (Vector2)localToLayer.TransformVector(Vector2.up);
+            var size = new Vector2(xaxis.magnitude, yaxis.magnitude);
+            xaxis.Normalize();
+            
+            innerBounds.Reset(center, size, xaxis);
 
             var outerSize = size + 2f * borderThickness * Vector2.one;
-            outsideBounds.Reset(center, outerSize, xaxis);
+            outerBounds.Reset(center, outerSize, xaxis);
         }
 
         public static bool Contains(Vector2 min, Vector2 max, Vector2 point) {
