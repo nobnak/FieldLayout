@@ -20,11 +20,6 @@ namespace nobnak.FieldLayout {
 
         #region Unity
         protected virtual void OnEnable() {
-            if (layer == null) {
-                enabled = false;
-                return;
-            }
-
             gl = new GLFigure();
 
             validator.Reset();
@@ -50,8 +45,6 @@ namespace nobnak.FieldLayout {
         #region Message
         public virtual void CrownLayer(Layer layer) {
             this.layer = layer;
-            if (layer != null)
-                enabled = true;
         }
         #endregion
 

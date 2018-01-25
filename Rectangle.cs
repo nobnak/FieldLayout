@@ -1,5 +1,6 @@
 ﻿using Gist.Extensions.RectExt;
 using UnityEngine;
+using nobnak.Gist.Intersection;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -9,7 +10,7 @@ namespace nobnak.FieldLayout {
     [ExecuteInEditMode]
     public class Rectangle : AbstractField {
 
-        [SerializeField] protected Rect localSize = new Rect(-0.5f, -0.5f, 1f, 1f);
+        public static readonly Rect LOCAL_RECT = new Rect(-0.5f, -0.5f, 1f, 1f);
 
         [Header("Debug")]
         [SerializeField]
@@ -17,38 +18,35 @@ namespace nobnak.FieldLayout {
         [SerializeField]
         protected Color debugColor = Color.white;
 
-        protected Rect layerInside;
-        protected Vector2 layerInsideMin;
-        protected Vector2 layerInsideMax;
-        protected Rect layerOutside;
-        protected Vector2 layerOutsideMin;
-        protected Vector2 layerOutsideMax;
+        protected OBB2 insideBounds = new OBB2();
+        protected OBB2 outsideBounds = new OBB2();
 
         #region Unity
         protected virtual void OnRenderObject() {
             if (!CanRender)
                 return;
 
-            var view = Camera.current.worldToCameraMatrix * layer.LayerToWorld.Matrix;
+            var view = Camera.current.worldToCameraMatrix;
+            var model = layer.LayerToWorld.Matrix * localToLayer.Matrix;
 
-            gl.CurrentColor = debugColor;
-            gl.DrawQuad(view * Matrix4x4.TRS(
-                layerInside.center, Quaternion.identity, layerInside.size));
+            var c = debugColor;
+            gl.CurrentColor = c;
+            gl.DrawQuad(view * model);
 
-            gl.CurrentColor *= 0.5f;
-            gl.DrawQuad(view * Matrix4x4.TRS(
-                layerOutside.center, Quaternion.identity, layerOutside.size));
+            c.a *= 0.2f;
+            gl.CurrentColor = c;
+            gl.DrawQuad(view * model);
 
-            gl.CurrentColor *= 0.5f;
-            gl.FillQuad(view * Matrix4x4.TRS(
-                layerInside.center, Quaternion.identity, layerInside.size));
+            c.a *= 0.2f;
+            gl.CurrentColor = c;
+            gl.FillQuad(view * model);
         }
         protected virtual void OnDrawGizmos() {
             #if UNITY_EDITOR
                 if (!CanRender || !debugEnabled)
                     return;
 
-                var layerTopLeft = new Vector2(layerInsideMin.x, layerInsideMax.y);
+                var layerTopLeft = localToLayer.TransformPoint(new Vector2(-0.5f, 0.5f));
                 var worldTopLeft = layer.LayerToWorld.TransformPoint(layerTopLeft);
 
                 var style = new GUIStyle();
@@ -61,34 +59,32 @@ namespace nobnak.FieldLayout {
         public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
             switch (side) {
                 case SideEnum.Outside:
-                    return layerOutside.ClosestPoint(layerPoint);
+                    return outsideBounds.ClosestPoint(layerPoint);
                 default:
-                    return layerInside.ClosestPoint(layerPoint);
+                    return insideBounds.ClosestPoint(layerPoint);
             }
         }
 
         public override ContainsResult ContainsInOuterBoundary(Vector2 layerPoint) {
-            var contain = Contains(layerOutsideMin, layerOutsideMax, layerPoint);
+            var contain = outsideBounds.Contains(layerPoint);
             return new ContainsResult(this, contain, BoundaryMode.Outer);
         }
         public override ContainsResult ContainsInInnerBoundary(Vector2 layerPoint) {
-            var contain = Contains(layerInsideMin, layerInsideMax, layerPoint);
+            var contain = insideBounds.Contains(layerPoint);
             return new ContainsResult(this, contain, BoundaryMode.Inner);
         }
 
         public override void Rebuild() {
             localToLayer.Reset(layer.LocalToLayer.Matrix,
-                Matrix4x4.TRS(transform.localPosition, Quaternion.identity, transform.localScale));
+                Matrix4x4.TRS(transform.localPosition, transform.localRotation, transform.localScale));
 
-            layerInsideMin = localToLayer.TransformPoint(localSize.min);
-            layerInsideMax = localToLayer.TransformPoint(localSize.max);
-            layerInside = Rect.MinMaxRect(layerInsideMin.x, layerInsideMin.y, 
-                layerInsideMax.x, layerInsideMax.y);
+            var center = (Vector2)localToLayer.TransformPoint(Vector2.zero);
+            var size = (Vector2)localToLayer.TransformVector(Vector2.one);
+            var xaxis = (Vector2)localToLayer.TransformVector(Vector2.right);
+            insideBounds.Reset(center, size, xaxis);
 
-            layerOutsideMin = layerInsideMin - borderThickness * Vector2.one;
-            layerOutsideMax = layerInsideMax + borderThickness * Vector2.one;
-            layerOutside = Rect.MinMaxRect(layerOutsideMin.x, layerOutsideMin.y,
-                layerOutsideMax.x, layerOutsideMax.y);
+            var outerSize = size + 2f * borderThickness * Vector2.one;
+            outsideBounds.Reset(center, outerSize, xaxis);
         }
 
         public static bool Contains(Vector2 min, Vector2 max, Vector2 point) {
