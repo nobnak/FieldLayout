@@ -89,15 +89,26 @@ namespace nobnak.FieldLayout {
             public readonly AbstractField tip;
             public readonly BoundaryMode boundary;
             public readonly bool contain;
+            public readonly Vector2 layerPoint;
 
-            public ContainsResult(AbstractField tip, bool contain, BoundaryMode boundary = BoundaryMode.Unknown) {
+            public ContainsResult(AbstractField tip, bool contain, Vector2 layerPoint,
+                BoundaryMode boundary = BoundaryMode.Unknown) {
+
                 this.tip = tip;
                 this.boundary = boundary;
                 this.contain = contain;
+                this.layerPoint = layerPoint;
             }
 
             public static implicit operator bool(ContainsResult cres) {
                 return cres.contain;
+            }
+
+            public Vector2 LocalPosition {
+                get { return tip.localToLayer.InverseTransformPoint(layerPoint); }
+            }
+            public Vector3 WorldPosition {
+                get { return tip.layer.LayerToWorld.TransformPoint(layerPoint); }
             }
         }
     }

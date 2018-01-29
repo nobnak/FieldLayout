@@ -67,11 +67,11 @@ namespace nobnak.FieldLayout {
 
         public override ContainsResult ContainsInOuterBoundary(Vector2 layerPoint) {
             var contain = outerBounds.Contains(layerPoint);
-            return new ContainsResult(this, contain, BoundaryMode.Outer);
+            return new ContainsResult(this, contain, layerPoint, BoundaryMode.Outer);
         }
         public override ContainsResult ContainsInInnerBoundary(Vector2 layerPoint) {
             var contain = innerBounds.Contains(layerPoint);
-            return new ContainsResult(this, contain, BoundaryMode.Inner);
+            return new ContainsResult(this, contain, layerPoint, BoundaryMode.Inner);
         }
 
         public override void Rebuild() {
