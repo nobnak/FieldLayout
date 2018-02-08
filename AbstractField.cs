@@ -27,6 +27,7 @@ namespace nobnak.FieldLayout {
                 layer.LayerValidator.CheckValidation();
                 Rebuild();
                 transform.hasChanged = false;
+                this.NotifySelf<IAbstractFieldListener>(a => a.AbstractFieldOnChanged(this));
             };
             validator.SetCheckers(() => layer.LayerValidator.IsValid && !transform.hasChanged);
             layer.LayerValidator.Invalidated += () => validator.Invalidate();
@@ -110,6 +111,10 @@ namespace nobnak.FieldLayout {
             public Vector3 WorldPosition {
                 get { return tip.layer.LayerToWorld.TransformPoint(layerPoint); }
             }
+        }
+
+        public interface IAbstractFieldListener {
+            void AbstractFieldOnChanged(AbstractField f);
         }
     }
 }
