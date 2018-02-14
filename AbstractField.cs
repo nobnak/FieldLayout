@@ -24,13 +24,19 @@ namespace nobnak.FieldLayout {
 
             validator.Reset();
             validator.Validation += () => {
+                if (layer == null)
+                    return;
                 layer.LayerValidator.CheckValidation();
+
                 Rebuild();
                 transform.hasChanged = false;
                 this.NotifySelf<IAbstractFieldListener>(a => a.AbstractFieldOnChanged(this));
             };
-            validator.SetCheckers(() => layer.LayerValidator.IsValid && !transform.hasChanged);
-            layer.LayerValidator.Invalidated += () => validator.Invalidate();
+            validator.SetCheckers(() => 
+                layer != null 
+                && layer.IsActiveAndEnabledAlsoInEditMode()
+                && layer.LayerValidator.IsValid 
+                && !transform.hasChanged);
         }
         protected virtual void OnValidate() {
             validator.Invalidate();
