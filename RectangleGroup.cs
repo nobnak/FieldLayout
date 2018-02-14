@@ -22,6 +22,8 @@ namespace nobnak.FieldLayout {
         }
         #endregion
 
+        public AbstractField[] Fields { get { return fields; } set { fields = value; } }
+
         public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
             var minSqDist = float.MaxValue;
             var result = Vector2.zero;
