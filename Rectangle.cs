@@ -1,6 +1,7 @@
 ﻿using Gist.Extensions.RectExt;
 using UnityEngine;
 using nobnak.Gist.Intersection;
+using nobnak.Gist.Exhibitor;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -8,7 +9,7 @@ using UnityEditor;
 namespace nobnak.FieldLayout {
 
     [ExecuteInEditMode]
-    public class Rectangle : AbstractField {
+    public class Rectangle : AbstractField, IExhibitorListener {
 
         public static readonly Rect LOCAL_RECT = new Rect(-0.5f, -0.5f, 1f, 1f);
 
@@ -55,7 +56,8 @@ namespace nobnak.FieldLayout {
             #endif
         }
         #endregion
-        
+
+        #region AbstractField
         public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
             switch (side) {
                 case SideEnum.Outside:
@@ -88,6 +90,22 @@ namespace nobnak.FieldLayout {
 
             var outerSize = size + 2f * borderThickness * Vector2.one;
             outerBounds.Reset(center, outerSize, xaxis);
+        }
+        #endregion
+
+        #region IExhibitorListener
+        public void ExhibitorOnParent(Transform parent) {
+            ActionOnParent(parent, g => g.AddField(this));
+        }
+        public void ExhibitorOnUnparent(Transform parent) {
+            ActionOnParent(parent, g => g.RemvoeField(this));
+        }
+        #endregion
+
+        protected void ActionOnParent(Transform parent, System.Action<RectangleGroup> action) {
+            var group = parent.GetComponent<RectangleGroup>();
+            if (group != null)
+                action(group);
         }
 
         public static bool Contains(Vector2 min, Vector2 max, Vector2 point) {

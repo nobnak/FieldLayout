@@ -13,7 +13,7 @@ namespace nobnak.FieldLayout {
     [ExecuteInEditMode]
     public class RectangleGroup : AbstractField {
 
-        [SerializeField] protected AbstractField[] fields;
+        [SerializeField] protected List<AbstractField> fields = new List<AbstractField>();
 
         #region Unity
         protected override void OnValidate() {
@@ -22,7 +22,16 @@ namespace nobnak.FieldLayout {
         }
         #endregion
 
-        public AbstractField[] Fields { get { return fields; } set { fields = value; } }
+        #region Fields
+        public List<AbstractField> Fields { get { return fields; } set { fields = value; } }
+        public void AddField(AbstractField f) {
+            fields.Add(f);
+            f.NotifySelf<Layer.IMessageReceiver>(r => r.CrownLayer(layer));
+        }
+        public void RemvoeField(AbstractField f) {
+            fields.Remove(f);
+        }
+        #endregion
 
         public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
             var minSqDist = float.MaxValue;
