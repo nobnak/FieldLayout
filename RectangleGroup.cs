@@ -16,6 +16,9 @@ namespace nobnak.FieldLayout {
         [SerializeField] protected List<AbstractField> fields = new List<AbstractField>();
 
         #region Unity
+        protected override void OnEnable() {
+            fields.RemoveAll(f => f == null);
+        }
         protected override void OnValidate() {
             base.OnValidate();
             validator.Invalidate();

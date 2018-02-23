@@ -42,7 +42,11 @@ namespace nobnak.FieldLayout {
             validator.Invalidate();
         }
         protected virtual void OnDisable() {
-            gl.Dispose();
+            if (gl != null) {
+                gl.Dispose();
+                gl = null;
+            }
+
         }
         protected virtual void Update() {
             validator.CheckValidation();
