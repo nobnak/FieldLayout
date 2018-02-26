@@ -8,7 +8,7 @@ using UnityEngine;
 namespace nobnak.FieldLayout {
 
     [ExecuteInEditMode]
-    public abstract class AbstractField : MonoBehaviour, Layer.IMessageReceiver {
+    public abstract class AbstractField : MonoBehaviour, Layer.ILayerListener {
 
         [SerializeField] protected Layer layer;
         [Range(0f, 10f)]
@@ -56,6 +56,10 @@ namespace nobnak.FieldLayout {
         #region Message
         public virtual void CrownLayer(Layer layer) {
             this.layer = layer;
+        }
+        public virtual void UpdateLayer(Layer layer) {
+            if (this.layer == layer)
+                validator.Invalidate();
         }
         #endregion
 

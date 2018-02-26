@@ -29,7 +29,7 @@ namespace nobnak.FieldLayout {
         public List<AbstractField> Fields { get { return fields; } set { fields = value; } }
         public void AddField(AbstractField f) {
             fields.Add(f);
-            f.NotifySelf<Layer.IMessageReceiver>(r => r.CrownLayer(layer));
+            f.NotifySelf<Layer.ILayerListener>(r => r.CrownLayer(layer));
         }
         public void RemvoeField(AbstractField f) {
             fields.Remove(f);
