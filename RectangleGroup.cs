@@ -19,16 +19,13 @@ namespace nobnak.FieldLayout {
         protected override void OnEnable() {
             fields.RemoveAll(f => f == null);
         }
-        protected override void OnValidate() {
-            base.OnValidate();
-            validator.Invalidate();
-        }
         #endregion
 
         #region Fields
         public List<AbstractField> Fields { get { return fields; } set { fields = value; } }
         public void AddField(AbstractField f) {
             fields.Add(f);
+            InitField(f);
             f.NotifySelf<Layer.ILayerListener>(r => r.CrownLayer(layer));
         }
         public void RemvoeField(AbstractField f) {
@@ -70,10 +67,15 @@ namespace nobnak.FieldLayout {
 
         public override void Rebuild() {
             foreach (var f in IterateAbstractFields()) {
-                f.BorderThickness = borderThickness;
+                InitField(f);
             }
             Debug.LogFormat("RectangleGroup Rebuld()");
         }
+
+        private void InitField(AbstractField f) {
+            f.BorderThickness = borderThickness;
+        }
+
         protected IEnumerable<AbstractField> IterateAbstractFields() {
             foreach (var f in fields) {
                 if (f == null || !f.IsActiveAndEnabledAlsoInEditMode())
