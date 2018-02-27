@@ -69,7 +69,6 @@ namespace nobnak.FieldLayout {
             get { return borderThickness; }
             set {
                 validator.Invalidate();
-                Debug.Log("Invalidate() at AbstractField");
                 borderThickness = Mathf.Max(0f, value);
             }
         }
