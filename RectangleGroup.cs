@@ -11,7 +11,7 @@ using UnityEngine;
 namespace nobnak.FieldLayout {
 
     [ExecuteInEditMode]
-    public class RectangleGroup : AbstractField {
+    public class RectangleGroup : AbstractField, IGroup<AbstractField> {
 
         [SerializeField] protected List<AbstractField> fields = new List<AbstractField>();
 
@@ -21,8 +21,14 @@ namespace nobnak.FieldLayout {
         }
         #endregion
 
-        #region Fields
-        public List<AbstractField> Fields { get { return fields; } set { fields = value; } }
+        #region IGroup
+        public IList<AbstractField> Elements {
+            get { return fields; }
+            set {
+                fields.Clear();
+                fields.AddRange(value);
+            }
+        }
         public void AddField(AbstractField f) {
             fields.Add(f);
             InitField(f);

@@ -9,7 +9,7 @@ using UnityEditor;
 namespace nobnak.FieldLayout {
 
     [ExecuteInEditMode]
-    public class Rectangle : AbstractField, IExhibitorListener {
+    public class Rectangle : AbstractField {
 
         public static readonly Rect LOCAL_RECT = new Rect(-0.5f, -0.5f, 1f, 1f);
 
@@ -92,21 +92,6 @@ namespace nobnak.FieldLayout {
             outerBounds.Reset(center, outerSize, xaxis);
         }
         #endregion
-
-        #region IExhibitorListener
-        public void ExhibitorOnParent(Transform parent) {
-            ActionOnParent(parent, g => g.AddField(this));
-        }
-        public void ExhibitorOnUnparent(Transform parent) {
-            ActionOnParent(parent, g => g.RemvoeField(this));
-        }
-        #endregion
-
-        protected void ActionOnParent(Transform parent, System.Action<RectangleGroup> action) {
-            var group = parent.GetComponent<RectangleGroup>();
-            if (group != null)
-                action(group);
-        }
 
         public static bool Contains(Vector2 min, Vector2 max, Vector2 point) {
             var minx = min.x;

@@ -1,4 +1,6 @@
-﻿using nobnak.Gist;
+﻿using nobnak.FieldLayout.Extension;
+using nobnak.Gist;
+using nobnak.Gist.Exhibitor;
 using nobnak.Gist.Extensions.Behaviour;
 using nobnak.Gist.Extensions.ComponentExt;
 using nobnak.Gist.Layer2;
@@ -8,7 +10,7 @@ using UnityEngine;
 namespace nobnak.FieldLayout {
 
     [ExecuteInEditMode]
-    public abstract class AbstractField : MonoBehaviour, Layer.ILayerListener {
+    public abstract class AbstractField : MonoBehaviour, Layer.ILayerListener, IExhibitorListener {
 
         [SerializeField] protected Layer layer;
         [Range(0f, 10f)]
@@ -60,6 +62,15 @@ namespace nobnak.FieldLayout {
         public virtual void UpdateLayer(Layer layer) {
             if (this.layer == layer)
                 validator.Invalidate();
+        }
+        #endregion
+
+        #region IExhibitorListener
+        public virtual void ExhibitorOnParent(Transform parent) {
+            parent.Add(this);
+        }
+        public virtual void ExhibitorOnUnparent(Transform parent) {
+            parent.Remove(this);
         }
         #endregion
 
