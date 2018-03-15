@@ -77,7 +77,9 @@ namespace nobnak.FieldLayout {
         }
 
         public override void Rebuild() {
-            var localToLayerMatrix = Matrix4x4.TRS(transform.localPosition, transform.localRotation, transform.localScale);
+            var localScale = transform.localScale;
+            localScale.z = 1f;
+            var localToLayerMatrix = Matrix4x4.TRS(transform.localPosition, transform.localRotation, localScale);
             localToLayer.Reset(layer.LocalToLayer.Matrix, localToLayerMatrix);
 
             var center = (Vector2)localToLayer.TransformPoint(Vector2.zero);
