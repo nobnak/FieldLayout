@@ -135,6 +135,11 @@ namespace nobnak.FieldLayout {
             public Vector3 WorldPosition {
                 get { return tip.layer.LayerToWorld.TransformPoint(layerPoint); }
             }
+
+            public override string ToString() {
+                return string.Format("<AbstractField.ContainsResult : {0} local={1} layer={2}>",
+                    tip.name, LocalPosition, layerPoint);
+            }
         }
 
         public interface IAbstractFieldListener {
