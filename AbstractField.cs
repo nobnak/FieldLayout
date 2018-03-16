@@ -32,7 +32,7 @@ namespace nobnak.FieldLayout {
 
                 Rebuild();
                 transform.hasChanged = false;
-                this.NotifySelf<IAbstractFieldListener>(a => a.AbstractFieldOnChanged(this));
+                this.NotifySelf<IAbstractFieldListener>(a => a.TargetOnChange(this));
             };
             validator.SetCheckers(() => 
                 layer != null 
@@ -56,12 +56,9 @@ namespace nobnak.FieldLayout {
         #endregion
 
         #region Message
-        public virtual void CrownLayer(Layer layer) {
+        public virtual void TargetOnChange(Layer layer) {
             this.layer = layer;
-        }
-        public virtual void UpdateLayer(Layer layer) {
-            if (this.layer == layer)
-                validator.Invalidate();
+            validator.Invalidate();
         }
         #endregion
 
@@ -142,8 +139,6 @@ namespace nobnak.FieldLayout {
             }
         }
 
-        public interface IAbstractFieldListener {
-            void AbstractFieldOnChanged(AbstractField f);
-        }
+        public interface IAbstractFieldListener : IChangeListener<AbstractField> {}
     }
 }
