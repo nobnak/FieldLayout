@@ -1,4 +1,4 @@
-﻿using Gist.Extensions.RectExt;
+using Gist.Extensions.RectExt;
 using UnityEngine;
 using nobnak.Gist.Intersection;
 using nobnak.Gist.Exhibitor;
@@ -43,22 +43,26 @@ namespace nobnak.FieldLayout {
             gl.FillQuad(view * layerToWorld * innerBounds.Model);
         }
         protected virtual void OnDrawGizmos() {
-            #if UNITY_EDITOR
-                if (!CanRender || !debugEnabled)
-                    return;
+#if UNITY_EDITOR
+			if (!CanRender || !debugEnabled)
+				return;
 
-                var layerTopLeft = localToLayer.TransformPoint(new Vector2(-0.5f, 0.5f));
-                var worldTopLeft = layer.LayerToWorld.TransformPoint(layerTopLeft);
+			var layerTopLeft = localToLayer.TransformPoint(new Vector2(-0.5f, 0.5f));
+			var worldTopLeft = layer.LayerToWorld.TransformPoint(layerTopLeft);
 
-                var style = new GUIStyle();
-                style.normal.textColor = debugColor;
-                Handles.Label(worldTopLeft, string.Format("{0}({1})", gameObject.name, tag), style);
-            #endif
-        }
-        #endregion
+			var style = new GUIStyle();
+			style.normal.textColor = debugColor;
+			Handles.Label(worldTopLeft, Title, style);
+#endif
+		}
 
-        #region AbstractField
-        public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
+		public string Title {
+			get { return string.Format("{0}({1})", gameObject.name, tag); }
+		}
+		#endregion
+
+		#region AbstractField
+		public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
             switch (side) {
                 case SideEnum.Outside:
                     return outerBounds.ClosestPoint(layerPoint);
