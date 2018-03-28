@@ -28,7 +28,7 @@ namespace nobnak.FieldLayout {
             validator.Validation += () => {
                 if (layer == null)
                     return;
-                layer.LayerValidator.CheckValidation();
+                layer.LayerValidator.Validate();
 
                 Rebuild();
                 transform.hasChanged = false;
@@ -51,7 +51,7 @@ namespace nobnak.FieldLayout {
 
         }
         protected virtual void Update() {
-            validator.CheckValidation();
+            validator.Validate();
         }
         #endregion
 
@@ -102,7 +102,7 @@ namespace nobnak.FieldLayout {
                 return layer != null 
                     && this.IsActiveAndEnabledAlsoInEditMode()
                     && this.IsVisibleLayer()
-                    && validator.CheckValidation();
+                    && validator.Validate();
             }
         }
 
