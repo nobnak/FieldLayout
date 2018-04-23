@@ -34,11 +34,11 @@ namespace nobnak.FieldLayout {
             gl.CurrentColor = c;
             gl.DrawQuad(view * layerToWorld * innerBounds.Model);
 
-            c.a *= 0.2f;
+            c.a *= 0.5f;
             gl.CurrentColor = c;
             gl.DrawQuad(view * layerToWorld * outerBounds.Model);
 
-            c.a *= 0.2f;
+            c.a *= 0.5f;
             gl.CurrentColor = c;
             gl.FillQuad(view * layerToWorld * innerBounds.Model);
         }
