@@ -18,6 +18,8 @@ namespace nobnak.FieldLayout {
         protected bool debugEnabled = true;
         [SerializeField]
         protected Color debugColor = Color.white;
+		[SerializeField]
+		protected bool debugFill = true;
 
         protected OBB2 innerBounds = new OBB2();
         protected OBB2 outerBounds = new OBB2();
@@ -38,9 +40,11 @@ namespace nobnak.FieldLayout {
             gl.CurrentColor = c;
             gl.DrawQuad(view * layerToWorld * outerBounds.Model);
 
-            c.a *= 0.5f;
-            gl.CurrentColor = c;
-            gl.FillQuad(view * layerToWorld * innerBounds.Model);
+			if (debugFill) {
+				c.a *= 0.5f;
+				gl.CurrentColor = c;
+				gl.FillQuad(view * layerToWorld * innerBounds.Model);
+			}
         }
         protected virtual void OnDrawGizmos() {
 #if UNITY_EDITOR
