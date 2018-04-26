@@ -20,6 +20,9 @@ namespace nobnak.FieldLayout {
         protected Color debugColor = Color.white;
 		[SerializeField]
 		protected bool debugFill = true;
+		[SerializeField]
+		[Range(0.01f, 1f)]
+		protected float debugLineWidth = 0.1f;
 
         protected OBB2 innerBounds = new OBB2();
         protected OBB2 outerBounds = new OBB2();
@@ -33,16 +36,15 @@ namespace nobnak.FieldLayout {
             var layerToWorld = layer.LayerToWorld.Matrix;
 
             var c = debugColor;
+			var width = debugLineWidth * Mathf.Min(borderThickness, 1f);
             gl.CurrentColor = c;
-            gl.DrawQuad(view * layerToWorld * innerBounds.Model);
-
-            c.a *= 0.5f;
-            gl.CurrentColor = c;
-            gl.DrawQuad(view * layerToWorld * outerBounds.Model);
+            gl.DrawQuad(view * layerToWorld * innerBounds.Model, width);
+			
+            gl.CurrentColor = 0.5f * c;
+            gl.DrawQuad(view * layerToWorld * outerBounds.Model, width);
 
 			if (debugFill) {
-				c.a *= 0.5f;
-				gl.CurrentColor = c;
+				gl.CurrentColor = 0.5f * c;
 				gl.FillQuad(view * layerToWorld * innerBounds.Model);
 			}
         }
@@ -61,7 +63,7 @@ namespace nobnak.FieldLayout {
 		}
 
 		public string Title {
-			get { return string.Format("{0}({1})", gameObject.name, tag); }
+			get { return string.Format("{0}", gameObject.name); }
 		}
 		#endregion
 
