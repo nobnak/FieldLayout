@@ -2,6 +2,7 @@ using Gist.Extensions.RectExt;
 using UnityEngine;
 using nobnak.Gist.Intersection;
 using nobnak.Gist.Exhibitor;
+using nobnak.Gist.Extensions.CameraExt;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -21,7 +22,7 @@ namespace nobnak.FieldLayout {
 		[SerializeField]
 		protected bool debugFill = true;
 		[SerializeField]
-		[Range(0.01f, 1f)]
+		[Range(0.01f, 0.1f)]
 		protected float debugLineWidth = 0.1f;
 
         protected OBB2 innerBounds = new OBB2();
@@ -32,11 +33,16 @@ namespace nobnak.FieldLayout {
             if (!CanRender)
                 return;
 
-            var view = Camera.current.worldToCameraMatrix;
+			var cam = Camera.current;
+            var view = cam.worldToCameraMatrix;
             var layerToWorld = layer.LayerToWorld.Matrix;
 
-            var c = debugColor;
-			var width = debugLineWidth * Mathf.Min(borderThickness, 1f);
+			var worldCenter = layerToWorld.MultiplyPoint3x4(Vector3.zero);
+			var width = Mathf.Min(
+				debugLineWidth * cam.GetHandleSize(worldCenter), 
+				0.8f * borderThickness);
+
+			var c = debugColor;
             gl.CurrentColor = c;
             gl.DrawQuad(view * layerToWorld * innerBounds.Model, width);
 			
