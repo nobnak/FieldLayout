@@ -1,4 +1,4 @@
-﻿using nobnak.FieldLayout.Extension;
+using nobnak.FieldLayout.Extension;
 using nobnak.Gist;
 using nobnak.Gist.Exhibitor;
 using nobnak.Gist.Extensions.Behaviour;
@@ -32,7 +32,7 @@ namespace nobnak.FieldLayout {
 
                 Rebuild();
                 transform.hasChanged = false;
-                this.NotifySelf<IAbstractFieldListener>(a => a.TargetOnChange(this));
+                this.CallbackSelf<IAbstractFieldListener>(a => a.TargetOnChange(this));
             };
             validator.SetCheckers(() => 
                 layer != null 
