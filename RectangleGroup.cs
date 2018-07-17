@@ -32,7 +32,7 @@ namespace nobnak.FieldLayout {
         public void AddField(AbstractField f) {
             fields.Add(f);
             InitField(f);
-            f.NotifySelfAndChildren<Layer.ILayerListener>(r => r.TargetOnChange(layer));
+            f.CallbackChildren<Layer.ILayerListener>(r => r.TargetOnChange(layer));
         }
         public void RemvoeField(AbstractField f) {
             fields.Remove(f);

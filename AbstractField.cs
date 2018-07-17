@@ -32,7 +32,7 @@ namespace nobnak.FieldLayout {
 
                 Rebuild();
                 transform.hasChanged = false;
-                this.NotifySelf<IAbstractFieldListener>(a => a.TargetOnChange(this));
+                this.CallbackSelf<IAbstractFieldListener>(a => a.TargetOnChange(this));
             };
             validator.SetCheckers(() => 
                 layer != null 
