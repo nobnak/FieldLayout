@@ -24,7 +24,7 @@ namespace nobnak.FieldLayout.RuntimeTextSystem {
 			pro.gameObject.hideFlags |= HideFlags.HideInHierarchy;
         }
 		protected void OnDisable() {
-			pro.DestroyGameObject();
+			pro.DestroyGo();
 		}
 		protected void Update() {
 			var worldPos = transform.TransformPoint(anchorPosition);
