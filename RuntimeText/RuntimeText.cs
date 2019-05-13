@@ -17,6 +17,7 @@ namespace nobnak.FieldLayout.RuntimeTextSystem {
 
         protected TextMeshPro pro;
 
+        #region unity
         protected void OnEnable() {
             pro = new GameObject("Text").AddComponent<TextMeshPro>();
 			pro.enableWordWrapping = false;
@@ -35,6 +36,7 @@ namespace nobnak.FieldLayout.RuntimeTextSystem {
 			pro.enableAutoSizing = false;
 
 			var recttr = pro.rectTransform;
+            //recttr.SetParent(transform, false);
 			recttr.pivot = anchor;
 			recttr.rotation = transform.rotation;
 			recttr.anchoredPosition3D = worldPos;
@@ -42,8 +44,21 @@ namespace nobnak.FieldLayout.RuntimeTextSystem {
 			pro.gameObject.tag = gameObject.tag;
 			pro.gameObject.layer = gameObject.layer;
 		}
+        private void OnDrawGizmos() {
+            if (pro != null) {
+                var tr = pro.rectTransform;
+                Gizmos.color = Color.magenta;
+                Gizmos.DrawLine(
+                    tr.TransformPoint(0.5f * Vector3.left), 
+                    tr.TransformPoint(0.5f * Vector3.right));
+                Gizmos.DrawLine(
+                    tr.TransformPoint(0.5f * Vector3.down),
+                    tr.TransformPoint(0.5f * Vector3.up));
+            }
+        }
+        #endregion
 
-		public static float GetHandleSize(Vector3 worldPos) {
+        public static float GetHandleSize(Vector3 worldPos) {
 			return HANDLE_SIZE_BASE_SIZE * Camera.main.GetHandleSize(worldPos);
 		}
     }
