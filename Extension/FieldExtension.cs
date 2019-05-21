@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace nobnak.FieldLayout.AbstractFieldExt {
+namespace nobnak.FieldLayout.Extensions {
 
-	public static class AbstractFieldExtension {
+	public static class FieldExtension {
 
-		public static Vector3 LocalToWorldPos(this Rectangle af, Vector3 localPos) {
+		public static Vector3 LocalToWorldPos(this Field af, Vector3 localPos) {
 			var layerPos = af.LocalToLayer.TransformPoint(localPos);
 			return af.Layer.LayerToWorld.TransformPoint(layerPos);
 		}

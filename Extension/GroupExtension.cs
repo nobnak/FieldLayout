@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace nobnak.FieldLayout.Extension {
+namespace nobnak.FieldLayout.Extensions {
 
     public static class GroupExtension {
 
