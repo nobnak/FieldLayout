@@ -11,9 +11,9 @@ using UnityEngine;
 namespace nobnak.FieldLayout {
 
     [ExecuteInEditMode]
-    public class RectangleGroup : Rectangle, IGroup<Rectangle> {
+    public class RectangleGroup : Field, IGroup<Field> {
 
-        [SerializeField] protected List<Rectangle> fields = new List<Rectangle>();
+        [SerializeField] protected List<Field> fields = new List<Field>();
 
         #region Unity
         protected override void OnEnable() {
@@ -22,19 +22,19 @@ namespace nobnak.FieldLayout {
         #endregion
 
         #region IGroup
-        public IList<Rectangle> Elements {
+        public IList<Field> Elements {
             get { return fields; }
             set {
                 fields.Clear();
                 fields.AddRange(value);
             }
         }
-        public void AddField(Rectangle f) {
+        public void AddField(Field f) {
             fields.Add(f);
             InitField(f);
             f.CallbackChildren<Layer.ILayerListener>(r => r.TargetOnChange(layer));
         }
-        public void RemvoeField(Rectangle f) {
+        public void RemvoeField(Field f) {
             fields.Remove(f);
         }
         #endregion
@@ -78,11 +78,11 @@ namespace nobnak.FieldLayout {
             Debug.LogFormat("RectangleGroup Rebuld()");
         }
 
-        private void InitField(Rectangle f) {
+        private void InitField(Field f) {
             f.BorderThickness = borderThickness;
         }
 
-        protected IEnumerable<Rectangle> IterateAbstractFields() {
+        protected IEnumerable<Field> IterateAbstractFields() {
             foreach (var f in fields) {
                 if (f == null || !f.IsActiveAndEnabledAlsoInEditMode())
                     continue;
