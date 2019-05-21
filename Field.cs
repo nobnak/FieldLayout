@@ -22,6 +22,8 @@ namespace nobnak.FieldLayout {
         [SerializeField] protected Layer layer;
         [Range(0f, 10f)]
         [SerializeField] protected float borderThickness = 0.1f;
+		[Range(0f, 360f)]
+		[SerializeField] protected float rotation = 0f;
 
         protected DefferedMatrix localToLayer = new DefferedMatrix();
         protected Validator validator = new Validator();
@@ -73,6 +75,15 @@ namespace nobnak.FieldLayout {
         }
         #endregion
 
+		public float Rotation {
+			get { return rotation; }
+			set {
+				if (rotation != value) {
+					validator.Invalidate();
+					rotation = Mathf.Repeat(value, 360f);
+				}
+			}
+		}
         public string Title {
             get { return string.Format("{0}", gameObject.name); }
         }
@@ -105,7 +116,7 @@ namespace nobnak.FieldLayout {
             var localScale = transform.localScale;
             localScale.z = 1f;
 
-            transform.rotation = layer.transform.rotation;
+            transform.rotation = layer.transform.rotation * Quaternion.Euler(0f, 0f, rotation);
             var layerPos = layer.LayerToWorld.InverseTransformPoint(transform.position);
             layerPos.z = 0f;
             transform.position = layer.LayerToWorld.TransformPoint(layerPos).RoundBelowZero();
