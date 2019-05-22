@@ -73,15 +73,6 @@ namespace nobnak.FieldLayout {
         }
         #endregion
 
-		public float Rotation {
-			get { return rotation; }
-			set {
-				if (rotation != value) {
-					validator.Invalidate();
-					rotation = Mathf.Repeat(value, 360f);
-				}
-			}
-		}
         public string Title {
             get { return string.Format("{0}", gameObject.name); }
         }
@@ -118,12 +109,12 @@ namespace nobnak.FieldLayout {
 			var localRotation = Quaternion.Inverse(layer.transform.rotation) * transform.rotation;
 			var localEuler = localRotation.eulerAngles;
 			localEuler.x = localEuler.y = 0f;
-			localEuler = localEuler.Quantize();
+			localEuler = localEuler.Quantize(0.01f);
             transform.rotation = layer.transform.rotation * Quaternion.Euler(localEuler);
 
             var layerPos = layer.LayerToWorld.InverseTransformPoint(transform.position);
             layerPos.z = 0f;
-            transform.position = layer.LayerToWorld.TransformPoint(layerPos).RoundBelowZero();
+            transform.position = layer.LayerToWorld.TransformPoint(layerPos).Quantize(0.01f);
 
             localToLayer.Reset(layer.LayerToWorld.Inverse, transform.localToWorldMatrix);
 
