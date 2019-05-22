@@ -22,8 +22,6 @@ namespace nobnak.FieldLayout {
         [SerializeField] protected Layer layer;
         [Range(0f, 10f)]
         [SerializeField] protected float borderThickness = 0.1f;
-		[Range(0f, 360f)]
-		[SerializeField] protected float rotation = 0f;
 
         protected DefferedMatrix localToLayer = new DefferedMatrix();
         protected Validator validator = new Validator();
@@ -115,8 +113,14 @@ namespace nobnak.FieldLayout {
         public virtual void Rebuild() {
             var localScale = transform.localScale;
             localScale.z = 1f;
+			transform.localScale = localScale;
 
-            transform.rotation = layer.transform.rotation * Quaternion.Euler(0f, 0f, rotation);
+			var localRotation = Quaternion.Inverse(layer.transform.rotation) * transform.rotation;
+			var localEuler = localRotation.eulerAngles;
+			localEuler.x = localEuler.y = 0f;
+			localEuler = localEuler.Quantize();
+            transform.rotation = layer.transform.rotation * Quaternion.Euler(localEuler);
+
             var layerPos = layer.LayerToWorld.InverseTransformPoint(transform.position);
             layerPos.z = 0f;
             transform.position = layer.LayerToWorld.TransformPoint(layerPos).RoundBelowZero();
