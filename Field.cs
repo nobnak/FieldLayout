@@ -30,6 +30,9 @@ namespace nobnak.FieldLayout {
 
         #region Unity
         protected virtual void OnEnable() {
+            validator.Validate();
+        }
+        public Field() { 
             validator.Reset();
             validator.Validation += () => {
                 if (layer == null)
@@ -146,7 +149,7 @@ namespace nobnak.FieldLayout {
                 return layer != null
                     && this.IsActiveAndEnabledAlsoInEditMode()
                     && this.IsVisibleLayer()
-                    && validator.Validate(); ;
+                    && validator.IsValid; ;
             }
         }
         #endregion
