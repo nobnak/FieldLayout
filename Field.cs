@@ -88,21 +88,26 @@ namespace nobnak.FieldLayout {
                 borderThickness = Mathf.Max(0f, value);
             }
         }
-        public virtual Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
+        public virtual OBB2 Bounds(SideEnum side = SideEnum.Inside) {
             switch (side) {
                 case SideEnum.Outside:
-                    return outerBounds.ClosestPoint(layerPoint);
+                    return outerBounds;
                 default:
-                    return innerBounds.ClosestPoint(layerPoint);
+                    return innerBounds;
             }
         }
+        public virtual Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
+            return Bounds(side).ClosestPoint(layerPoint);
+        }
+        public virtual ContainsResult Contains(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
+            var contain = Bounds(side).Contains(layerPoint);
+            return new ContainsResult(this, contain, layerPoint, ToBoundaryMode(side));
+        }
         public virtual ContainsResult ContainsInOuterBoundary(Vector2 layerPoint) {
-            var contain = outerBounds.Contains(layerPoint);
-            return new ContainsResult(this, contain, layerPoint, BoundaryMode.Outer);
+            return Contains(layerPoint, SideEnum.Outside);
         }
         public virtual ContainsResult ContainsInInnerBoundary(Vector2 layerPoint) {
-            var contain = innerBounds.Contains(layerPoint);
-            return new ContainsResult(this, contain, layerPoint, BoundaryMode.Inner);
+            return Contains(layerPoint, SideEnum.Inside);
         }
         public virtual void Rebuild() {
             var localScale = transform.localScale;
@@ -117,7 +122,7 @@ namespace nobnak.FieldLayout {
 
             var layerPos = layer.LayerToWorld.InverseTransformPoint(transform.position);
             layerPos.z = 0f;
-            transform.position = layer.LayerToWorld.TransformPoint(layerPos).Quantize(0.01f);
+            transform.position = layer.LayerToWorld.TransformPoint(layerPos).Quantize(1e-6f);
 
             localToLayer.Reset(layer.LayerToWorld.Inverse, transform.localToWorldMatrix);
 
@@ -150,6 +155,16 @@ namespace nobnak.FieldLayout {
                     && this.IsActiveAndEnabledAlsoInEditMode()
                     && this.IsVisibleLayer()
                     && validator.IsValid; ;
+            }
+        }
+        protected BoundaryMode ToBoundaryMode(SideEnum side) {
+            switch (side) {
+                case SideEnum.Outside:
+                    return BoundaryMode.Outer;
+                case SideEnum.Inside:
+                    return BoundaryMode.Inner;
+                default:
+                    return BoundaryMode.Unknown;
             }
         }
         #endregion
