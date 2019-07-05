@@ -29,6 +29,7 @@ namespace nobnak.FieldLayout {
         protected override void OnEnable() {
             base.OnEnable();
             gl = new GLFigure();
+            gl.DefaultLineMat.ZTestMode = GLMaterial.ZTestEnum.ALWAYS;
         }
         protected override void OnDisable() {
             base.OnDisable();
