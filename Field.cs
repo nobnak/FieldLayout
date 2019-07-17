@@ -17,6 +17,8 @@ namespace nobnak.FieldLayout {
 	[ExecuteInEditMode]
     public class Field : MonoBehaviour, Layer.ILayerListener, IExhibitorListener {
 
+        public event System.Action Validated;
+
         public static readonly Rect LOCAL_RECT = new Rect(-0.5f, -0.5f, 1f, 1f);
 
         [SerializeField] protected Layer layer;
@@ -43,6 +45,7 @@ namespace nobnak.FieldLayout {
                 transform.hasChanged = false;
                 this.CallbackSelf<IFieldListener>(a => a.TargetOnChange(this));
             };
+            validator.Validated += () => Validated?.Invoke();
             validator.SetCheckers(() => 
                 layer != null 
                 && layer.IsActiveAndEnabledAlsoInEditMode()
@@ -202,7 +205,15 @@ namespace nobnak.FieldLayout {
                     tip.name, LocalPosition, layerPoint);
             }
         }
-
+        [System.Serializable]
+        public class CustomTransform {
+            public bool customPosition;
+            public Vector3 position = Vector3.zero;
+            public bool customRotation;
+            public Vector3 rotation = Vector3.zero;
+            public bool customScale;
+            public Vector3 scale = Vector3.one;
+        }
         public interface IFieldListener : IChangeListener<Field> {}
         #endregion
     }
