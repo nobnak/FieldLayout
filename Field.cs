@@ -1,3 +1,5 @@
+using System;
+using System.Text;
 using nobnak.FieldLayout.Extensions;
 using nobnak.Gist;
 using nobnak.Gist.Exhibitor;
@@ -14,10 +16,10 @@ using UnityEngine;
 
 namespace nobnak.FieldLayout {
 
-	[ExecuteInEditMode]
-    public class Field : MonoBehaviour, Layer.ILayerListener, IExhibitorListener {
+	[ExecuteAlways]
+    public class Field : MonoBehaviour, Layer.ILayerListener, IExhibitorListener, IChangeListener<Transform> {
 
-        public event System.Action Validated;
+        public EventHolder eventHolder = new EventHolder();
 
         public static readonly Rect LOCAL_RECT = new Rect(-0.5f, -0.5f, 1f, 1f);
 
@@ -30,11 +32,7 @@ namespace nobnak.FieldLayout {
         protected OBB2 innerBounds = new OBB2();
         protected OBB2 outerBounds = new OBB2();
 
-        #region Unity
-        protected virtual void OnEnable() {
-            validator.Validate();
-        }
-        public Field() { 
+        public Field() {
             validator.Reset();
             validator.Validation += () => {
                 if (layer == null)
@@ -43,14 +41,22 @@ namespace nobnak.FieldLayout {
 
                 Rebuild();
                 transform.hasChanged = false;
-                this.CallbackSelf<IFieldListener>(a => a.TargetOnChange(this));
+                //this.CallbackSelf<IFieldListener>(a => a.TargetOnChange(this));
+                //this.CallbackParent<IFieldListener>(a => a.TargetOnChange(this));
             };
-            validator.Validated += () => Validated?.Invoke();
-            validator.SetCheckers(() => 
-                layer != null 
+            validator.Validated += () => {
+                eventHolder.NotifyValidated(this);
+            };
+            validator.SetCheckers(() =>
+                layer != null
                 && layer.IsActiveAndEnabledAlsoInEditMode()
-                && layer.LayerValidator.IsValid 
+                && layer.LayerValidator.IsValid
                 && !transform.hasChanged);
+        }
+
+        #region Unity
+        protected virtual void OnEnable() {
+            validator.Validate();
         }
         protected virtual void OnDisable() {
         }
@@ -64,8 +70,10 @@ namespace nobnak.FieldLayout {
 
         #region Message
         public virtual void TargetOnChange(Layer layer) {
-            this.layer = layer;
-            validator.Invalidate();
+            if (this.layer != layer) {
+                this.layer = layer;
+                validator.Invalidate();
+            }
         }
         #endregion
 
@@ -76,6 +84,13 @@ namespace nobnak.FieldLayout {
         }
         public virtual void ExhibitorOnUnparent(Transform parent) {
             parent.Remove(this);
+        }
+        #endregion
+
+        #region IChangeListener<Transform>
+        public void TargetOnChange(Transform target) {
+            if (target == transform)
+                validator.Invalidate();
         }
         #endregion
 
@@ -170,9 +185,10 @@ namespace nobnak.FieldLayout {
                     return BoundaryMode.Unknown;
             }
         }
-        #endregion
 
-        #region classes
+#endregion
+
+#region classes
         public enum BoundaryMode { Unknown = 0, Inner, Outer }
         public struct ContainsResult {
             public readonly Field tip;
@@ -215,6 +231,18 @@ namespace nobnak.FieldLayout {
             public Vector3 scale = Vector3.one;
         }
         public interface IFieldListener : IChangeListener<Field> {}
-        #endregion
+        [System.Serializable]
+        public class EventHolder {
+            public event System.Action<Field> EventValidated;
+
+            public FieldEvent Validated = new FieldEvent();
+
+            public void NotifyValidated(Field self) {
+
+                EventValidated?.Invoke(self);
+                Validated.Invoke(self);
+            }
+        }
+#endregion
     }
 }
