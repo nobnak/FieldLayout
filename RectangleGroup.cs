@@ -11,7 +11,7 @@ using UnityEngine;
 namespace nobnak.FieldLayout {
 
     [ExecuteInEditMode]
-    public class RectangleGroup : Field, IGroup<Field> {
+    public class RectangleGroup : Field, IGroup<Field>, IEnumerable<Field>, Field.IFieldListener {
 
         [SerializeField] protected List<Field> fields = new List<Field>();
 
@@ -39,10 +39,30 @@ namespace nobnak.FieldLayout {
         }
         #endregion
 
+        #region IFieldListener
+        public void TargetOnChange(Field target) {
+            validator.Invalidate();
+        }
+        #endregion
+
+        #region IEnumerable
+        public IEnumerator<Field> GetEnumerator() {
+            foreach (var f in fields) {
+                if (f == null || !f.IsActiveAndEnabledAlsoInEditMode())
+                    continue;
+                yield return f;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
+        }
+        #endregion
+
         public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
             var minSqDist = float.MaxValue;
             var result = Vector2.zero;
-            foreach (var f in IterateAbstractFields()) {
+            foreach (var f in this) {
                 var cp = f.ClosestPoint(layerPoint, side);
                 var sqDist = (cp - layerPoint).sqrMagnitude;
                 if (sqDist < minSqDist) {
@@ -54,7 +74,7 @@ namespace nobnak.FieldLayout {
         }
 
         public override ContainsResult ContainsInOuterBoundary(Vector2 layerPoint) {
-            foreach (var f in IterateAbstractFields()) {
+            foreach (var f in this) {
                 var contain = f.ContainsInOuterBoundary(layerPoint);
                 if (contain)
                     return contain;
@@ -63,7 +83,7 @@ namespace nobnak.FieldLayout {
         }
 
         public override ContainsResult ContainsInInnerBoundary(Vector2 layerPoint) {
-            foreach (var f in IterateAbstractFields()) {
+            foreach (var f in this) {
                 var contain = f.ContainsInInnerBoundary(layerPoint);
                 if (contain)
                     return contain;
@@ -72,7 +92,7 @@ namespace nobnak.FieldLayout {
         }
 
         public override void Rebuild() {
-            foreach (var f in IterateAbstractFields()) {
+            foreach (var f in this) {
                 InitField(f);
             }
             Debug.LogFormat("RectangleGroup Rebuld()");
@@ -80,14 +100,6 @@ namespace nobnak.FieldLayout {
 
         private void InitField(Field f) {
             f.BorderThickness = borderThickness;
-        }
-
-        protected IEnumerable<Field> IterateAbstractFields() {
-            foreach (var f in fields) {
-                if (f == null || !f.IsActiveAndEnabledAlsoInEditMode())
-                    continue;
-                yield return f;
-            }
         }
     }
 }
