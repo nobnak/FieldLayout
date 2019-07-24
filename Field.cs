@@ -157,7 +157,7 @@ namespace nobnak.FieldLayout {
                 return layer != null
                     && this.IsActiveAndEnabledAlsoInEditMode()
                     && this.IsVisibleLayer()
-                    && validator.IsValid; ;
+                    && validator.Validate();
             }
         }
         protected BoundaryMode ToBoundaryMode(SideEnum side) {
