@@ -29,6 +29,17 @@ namespace nobnak.FieldLayout.Extensions {
             return LocalToUvPos(localPos);
         }
 
+        public static Vector2 WorldToNormalizedPos(this Field f, Vector3 worldPos) {
+            var localPos = f.WorldToLocalPos(worldPos);
+            return f.LocalToNormalized(localPos);
+        }
+
+        public static Vector2 LocalToNormalized(this Field f, Vector2 localPos) {
+            var s = f.transform.localScale;
+            var aspect = s.x / s.y;
+            return new Vector2((localPos.x + 0.5f) * aspect, localPos.y + 0.5f);
+        }
+
         public static Vector2 LocalToUvPos(this Vector2 localPos) {
             return new Vector2(localPos.x + 0.5f, localPos.y + 0.5f);
         }
