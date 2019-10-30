@@ -70,10 +70,8 @@ namespace nobnak.FieldLayout {
 
         #region Message
         public virtual void TargetOnChange(Layer layer) {
-            if (this.layer != layer) {
-                this.layer = layer;
-                validator.Invalidate();
-            }
+            this.layer = layer;
+            validator.Invalidate();
         }
         #endregion
 
