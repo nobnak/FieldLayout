@@ -9,12 +9,19 @@ namespace nobnak.FieldLayout.Extensions {
         public const float TWO_PI = 2f * Mathf.PI;
         public const float TWO_PI_INV = 1f / TWO_PI;
 
-        public static Vector3 LocalToWorldPos(this Field f, Vector3 localPos) {
-			var layerPos = f.LocalToLayer.TransformPoint(localPos);
+		public static Vector3 LocalToLayerPos(this Field f, Vector3 localPos) {
+			return f.LocalToLayer.TransformPoint(localPos);
+		}
+		public static Vector3 LayerToLocalPos(this Field f, Vector3 localPos) {
+			return f.LocalToLayer.InverseTransformPoint(localPos);
+		}
+
+		public static Vector3 LocalToWorldPos(this Field f, Vector3 localPos) {
+			var layerPos = f.LocalToLayerPos(localPos);
 			return f.Layer.LayerToWorld.TransformPoint(layerPos);
         }
         public static Vector2 WorldToLocalPos(this Field tip, Vector3 worldPos) {
-            var localPos = (Vector2)tip.LocalToLayer.InverseTransformPoint(
+            var localPos = (Vector2)tip.LayerToLocalPos(
                 (Vector2)tip.Layer.LayerToWorld.InverseTransformPoint(worldPos));
             return localPos;
         }
