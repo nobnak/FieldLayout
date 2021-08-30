@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using nobnak.FieldLayout.Extensions;
 using nobnak.Gist;
+using nobnak.Gist.Events.Interfaces;
 using nobnak.Gist.Exhibitor;
 using nobnak.Gist.Extension.FloatArray;
 using nobnak.Gist.Extensions.Behaviour;
