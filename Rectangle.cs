@@ -1,7 +1,6 @@
-using nobnak.Gist;
-using nobnak.Gist.Layer2;
 using UnityEngine;
 using nobnak.Gist.Extensions.CameraExt;
+using nobnak.Gist.GLTools;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -9,7 +8,7 @@ using UnityEditor;
 
 namespace nobnak.FieldLayout {
 
-    [ExecuteInEditMode]
+	[ExecuteInEditMode]
     public class Rectangle : Field {
 
         [Header("Debug")]

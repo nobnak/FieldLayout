@@ -1,6 +1,7 @@
 using nobnak.FieldLayout.Extensions;
 using nobnak.Gist;
 using nobnak.Gist.Extensions.RandomExt;
+using nobnak.Gist.GLTools;
 using nobnak.Gist.MathAlgorithms.Distribution.Uniform;
 using nobnak.Gist.MathAlgorithms.Sampler;
 using nobnak.Gist.ObjectExt;
