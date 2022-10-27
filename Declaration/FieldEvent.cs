@@ -5,5 +5,5 @@ using UnityEngine;
 namespace nobnak.FieldLayout {
 
     [System.Serializable]
-    public class FieldEvent : UnityEngine.Events.UnityEvent<Field> { }
+    public class FieldEvent : UnityEngine.Events.UnityEvent<Rectangle> { }
 }

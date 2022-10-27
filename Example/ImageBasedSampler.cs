@@ -20,7 +20,7 @@ namespace nobnak.FieldLayout.Example {
         public static readonly int ID_RANDOM = Shader.PropertyToID("_Random");
 
         [SerializeField]
-        protected Field field;
+        protected Rectangle field;
         [SerializeField]
         protected GameObject[] fabs = new GameObject[0];
 
@@ -96,8 +96,8 @@ namespace nobnak.FieldLayout.Example {
                 count = Mathf.Max(count, 0);
 
                 if (field != null) {
-                    field.eventHolder.EventValidated -= ListenOnFieldValidated;
-                    field.eventHolder.EventValidated += ListenOnFieldValidated;
+                    field.events.EventOnChange -= ListenOnFieldValidated;
+                    field.events.EventOnChange += ListenOnFieldValidated;
                 }
 
                 GeneratePositions();
@@ -138,7 +138,7 @@ namespace nobnak.FieldLayout.Example {
         #endregion
 
         #region member
-        void ListenOnFieldValidated(Field field) {
+        void ListenOnFieldValidated(Rectangle field) {
             validator.Invalidate();
         }
         protected virtual void ResizeFlowers(int count) {

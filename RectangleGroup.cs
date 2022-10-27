@@ -11,42 +11,46 @@ using UnityEngine;
 namespace nobnak.FieldLayout {
 
     [ExecuteInEditMode]
-    public class RectangleGroup : Field, IGroup<Field>, IEnumerable<Field>, Field.IFieldListener {
+    public class RectangleGroup : Rectangle, IGroup<Rectangle>, IEnumerable<Rectangle>, Rectangle.IFieldListener {
 
-        [SerializeField] protected List<Field> fields = new List<Field>();
+        [SerializeField] protected List<Rectangle> fields = new List<Rectangle>();
 
         #region Unity
         protected override void OnEnable() {
             fields.RemoveAll(f => f == null);
-        }
+			changed.Invalidate();
+		}
         #endregion
 
         #region IGroup
-        public IList<Field> Elements {
+        public IList<Rectangle> Elements {
             get { return fields; }
             set {
                 fields.Clear();
                 fields.AddRange(value);
+				changed.Invalidate();
             }
         }
-        public void AddField(Field f) {
+        public void AddField(Rectangle f) {
             fields.Add(f);
             InitField(f);
             f.CallbackChildren<Layer.ILayerListener>(r => r.TargetOnChange(layer));
-        }
-        public void RemvoeField(Field f) {
+			changed.Invalidate();
+		}
+        public void RemvoeField(Rectangle f) {
             fields.Remove(f);
-        }
+			changed.Invalidate();
+		}
         #endregion
 
         #region IFieldListener
-        public void TargetOnChange(Field target) {
-            validator.Invalidate();
+        public void TargetOnChange(Rectangle target) {
+            changed.Invalidate();
         }
         #endregion
 
         #region IEnumerable
-        public IEnumerator<Field> GetEnumerator() {
+        public IEnumerator<Rectangle> GetEnumerator() {
             foreach (var f in fields) {
                 if (f == null || !f.IsActiveAndEnabledAlsoInEditMode())
                     continue;
@@ -57,9 +61,15 @@ namespace nobnak.FieldLayout {
         IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
         }
-        #endregion
+		#endregion
 
-        public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
+		#region interfaces
+		public override Vector3 Sample(SideEnum side = SideEnum.Inside) {
+			var i = Random.Range(0, fields.Count);
+			return  (i < 0) ? default : fields[i].Sample(side);
+		}
+
+		public override Vector2 ClosestPoint(Vector2 layerPoint, SideEnum side = SideEnum.Inside) {
             var minSqDist = float.MaxValue;
             var result = Vector2.zero;
             foreach (var f in this) {
@@ -97,9 +107,12 @@ namespace nobnak.FieldLayout {
             }
             Debug.LogFormat("RectangleGroup Rebuld()");
         }
+		#endregion
 
-        private void InitField(Field f) {
+		#region methods
+		private void InitField(Rectangle f) {
             f.BorderThickness = borderThickness;
         }
-    }
+		#endregion
+	}
 }
