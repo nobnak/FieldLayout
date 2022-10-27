@@ -170,7 +170,7 @@ namespace nobnak.FieldLayout {
 
 		#region interfaces
 		public virtual Vector3 Sample(SideEnum side = SideEnum.Inside) {
-			return this.UvToWorldPos(new Vector2(UnityEngine.Random.value, UnityEngine.Random.value));
+			return this.UvToWorldPos(new Vector2(RandomExtension.Value, RandomExtension.Value));
 		}
 
 		public virtual OBB2 Bounds(SideEnum side = SideEnum.Inside) {

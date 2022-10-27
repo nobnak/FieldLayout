@@ -1,4 +1,5 @@
 using Gist.Extensions.RectExt;
+using nobnak.FieldLayout.Extensions;
 using nobnak.Gist;
 using nobnak.Gist.Extensions.Behaviour;
 using nobnak.Gist.Extensions.ComponentExt;
@@ -65,7 +66,7 @@ namespace nobnak.FieldLayout {
 
 		#region interfaces
 		public override Vector3 Sample(SideEnum side = SideEnum.Inside) {
-			var i = Random.Range(0, fields.Count);
+			var i = RandomExtension.Range(0, fields.Count);
 			return  (i < 0) ? default : fields[i].Sample(side);
 		}
 
