@@ -19,6 +19,7 @@ namespace nobnak.FieldLayout.Extensions {
 
 		#region stack
 		private static void Pop() {
+			CurrState = Random.state;
 			Random.state = prevState;
 		}
 		private static Random.State Push() {
