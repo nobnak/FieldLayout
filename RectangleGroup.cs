@@ -4,6 +4,7 @@ using nobnak.Gist;
 using nobnak.Gist.Extensions.Behaviour;
 using nobnak.Gist.Extensions.ComponentExt;
 using nobnak.Gist.Layer2;
+using nobnak.Gist.MathAlgorithms;
 using nobnak.Gist.Primitive;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,8 +17,12 @@ namespace nobnak.FieldLayout {
 
         [SerializeField] protected List<Rectangle> fields = new List<Rectangle>();
 
+		protected LocalRandom rand;
+
         #region Unity
         protected override void OnEnable() {
+			rand = new LocalRandom(GetInstanceID());
+
             fields.RemoveAll(f => f == null);
 			changed.Invalidate();
 		}
@@ -66,7 +71,7 @@ namespace nobnak.FieldLayout {
 
 		#region interfaces
 		public override Vector3 Sample(SideEnum side = SideEnum.Inside) {
-			var i = RandomExtension.Range(0, fields.Count);
+			var i = rand.Range(0, fields.Count);
 			return  (i < 0) ? default : fields[i].Sample(side);
 		}
 

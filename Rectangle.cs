@@ -12,6 +12,7 @@ using nobnak.Gist.Extension.FloatArray;
 using nobnak.Gist.Extensions.ComponentExt;
 using System;
 using nobnak.Gist.Exhibitor;
+using nobnak.Gist.MathAlgorithms;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -37,6 +38,8 @@ namespace nobnak.FieldLayout {
 		protected OBB2 innerBounds = new OBB2();
 		protected OBB2 outerBounds = new OBB2();
 
+		protected LocalRandom rand;
+
 		[Header("Debug")]
         [SerializeField]
         protected bool debugEnabled = true;
@@ -50,7 +53,12 @@ namespace nobnak.FieldLayout {
 
         protected GLFigure gl;
 
-		public Rectangle() {
+		#region Unity
+		protected virtual void OnEnable() {
+			rand = new LocalRandom(GetInstanceID());
+			gl = new GLFigure();
+            gl.DefaultLineMat.ZTestMode = GLMaterial.ZTestEnum.ALWAYS;
+
 			changed.Reset();
 			changed.Validation += () => {
 				if (layer == null)
@@ -70,14 +78,9 @@ namespace nobnak.FieldLayout {
 				&& layer.IsActiveAndEnabledAlsoInEditMode()
 				&& layer.LayerValidator.IsValid
 				&& !transform.hasChanged);
-		}
 
-		#region Unity
-		protected virtual void OnEnable() {
 			changed.Validate();
-			gl = new GLFigure();
-            gl.DefaultLineMat.ZTestMode = GLMaterial.ZTestEnum.ALWAYS;
-        }
+		}
         protected virtual void OnDisable() {
             if (gl != null) {
                 gl.Dispose();
@@ -170,7 +173,7 @@ namespace nobnak.FieldLayout {
 
 		#region interfaces
 		public virtual Vector3 Sample(SideEnum side = SideEnum.Inside) {
-			return this.UvToWorldPos(new Vector2(RandomExtension.Value, RandomExtension.Value));
+			return this.UvToWorldPos(new Vector2(rand.Value, rand.Value));
 		}
 
 		public virtual OBB2 Bounds(SideEnum side = SideEnum.Inside) {
