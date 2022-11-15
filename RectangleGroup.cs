@@ -17,12 +17,9 @@ namespace nobnak.FieldLayout {
 
         [SerializeField] protected List<Rectangle> fields = new List<Rectangle>();
 
-		protected LocalRandom rand;
-
         #region Unity
         protected override void OnEnable() {
 			rand = new LocalRandom(GetInstanceID());
-
             fields.RemoveAll(f => f == null);
 			changed.Invalidate();
 		}
