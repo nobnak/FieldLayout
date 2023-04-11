@@ -35,8 +35,11 @@ namespace nobnak.FieldLayout.RuntimeTextSystem {
         }
 		protected void OnDisable() {
 			pro.DestroyGo();
+			pro = null;
 		}
 		protected void Update() {
+			if (pro == null) return;
+
 			var worldPos = transform.TransformPoint(anchorPosition);
 
 			pro.text = text;

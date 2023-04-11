@@ -59,7 +59,6 @@ namespace nobnak.FieldLayout {
 			gl = new GLFigure();
             gl.DefaultLineMat.ZTestMode = GLMaterial.ZTestEnum.ALWAYS;
 
-			changed.Reset();
 			changed.Validation += () => {
 				if (layer == null)
 					return;
@@ -82,7 +81,8 @@ namespace nobnak.FieldLayout {
 			changed.Validate();
 		}
         protected virtual void OnDisable() {
-            if (gl != null) {
+			changed.Reset();
+			if (gl != null) {
                 gl.Dispose();
                 gl = null;
             }

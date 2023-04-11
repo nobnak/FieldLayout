@@ -5,6 +5,7 @@ using nobnak.Gist.Extensions.Behaviour;
 using nobnak.Gist.Extensions.ComponentExt;
 using nobnak.Gist.Layer2;
 using nobnak.Gist.MathAlgorithms;
+using nobnak.Gist.ObjectExt;
 using nobnak.Gist.Primitive;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,7 +21,11 @@ namespace nobnak.FieldLayout {
         #region Unity
         protected override void OnEnable() {
 			rand = new LocalRandom(GetInstanceID());
-            fields.RemoveAll(f => f == null);
+#if UNITY_EDITOR
+			foreach (var n in GetComponentsInChildren<Rectangle>())
+				if (n.transform != transform && !fields.Contains(n)) n.DestroyGo();
+#endif
+			fields.RemoveAll(f => f == null);
 			changed.Invalidate();
 		}
         #endregion
