@@ -67,7 +67,7 @@ namespace nobnak.FieldLayout {
 
 				Rebuild();
 				transform.hasChanged = false;
-				//this.CallbackSelf<IFieldListener>(a => a.TargetOnChange(this));
+				this.CallbackSelf<IFieldListener>(a => a.TargetOnChange(this));
 				//this.CallbackParent<IFieldListener>(a => a.TargetOnChange(this));
 			};
 			changed.Validated += () => {
