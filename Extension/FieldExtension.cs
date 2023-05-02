@@ -65,5 +65,12 @@ namespace nobnak.FieldLayout.Extensions {
             var layerDir = f.LocalToLayer.TransformVector(localDir);
             return f.Layer.LayerToWorld.TransformVector(layerDir);
         }
+
+		public static Vector3 ProjectOn(this Rectangle f, Vector3 pos_wc, float z = 0f) {
+			var center = f.transform.position;
+			var normal = f.transform.forward;
+			var v = pos_wc - center;
+			return Vector3.ProjectOnPlane(v, normal) + center;
+		}
     }
 }
