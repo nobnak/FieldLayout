@@ -95,7 +95,10 @@ namespace nobnak.FieldLayout {
                 return;
 
             var cam = Camera.current;
-            var view = cam.worldToCameraMatrix;
+			if (cam.cameraType != CameraType.Game && cam.cameraType != CameraType.SceneView)
+				return;
+
+			var view = cam.worldToCameraMatrix;
             var layerToWorld = layer.LayerToWorld.Matrix;
 
             var worldCenter = layerToWorld.MultiplyPoint3x4(Vector3.zero);
