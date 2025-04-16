@@ -41,15 +41,11 @@ namespace nobnak.FieldLayout {
 		protected LocalRandom rand;
 
 		[Header("Debug")]
-        [SerializeField]
-        protected bool debugEnabled = true;
-        [SerializeField]
-        protected Color debugColor = Color.white;
-        [SerializeField]
-        protected bool debugFill = true;
-        [SerializeField]
+        public bool debugEnabled = true;
+        public Color debugColor = Color.white;
+        public bool debugFill = true;
         [Range(0.01f, 0.1f)]
-        protected float debugLineWidth = 0.1f;
+        public float debugLineWidth = 0.1f;
 
         protected GLFigure gl;
 
